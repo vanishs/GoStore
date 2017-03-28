@@ -2,7 +2,6 @@ package cache
 
 import (
 	"fmt"
-	"time"
 )
 
 type Cache interface {
@@ -11,7 +10,7 @@ type Cache interface {
 	// GetMulti is a batch version of Get.
 	GetMulti(keys []string) []interface{}
 	// set cached value with key and expire time.
-	Put(key string, val interface{}, timeout time.Duration) error
+	Put(key string, val interface{}, timeout int) error
 	// delete cached value by key.
 	Delete(key string) error
 	// delete caches by keys
@@ -22,8 +21,18 @@ type Cache interface {
 	Decr(key string) (int64, error)
 	// check if cached value exists or not.
 	IsExist(key string) bool
+	// EXPIRE
+	Expire(key string, timeout int) bool
 	// start cache
 	Start(config map[string]interface{}) error
+
+}
+
+type StructCache interface {
+	// **********Struct support********** //
+	// get cache struct by key
+	GetStruct(key string, dest interface{}) error
+	PutStruct(key string, val interface{}, timeout int) error
 }
 
 // Instance is a function create a new Cache Instance

@@ -5,6 +5,9 @@ import (
 	"time"
 	"github.com/garyburd/redigo/redis"
 	"github.com/seewindcn/GoStore/cache"
+	//"errors"
+	//"fmt"
+	"errors"
 )
 
 var (
@@ -134,9 +137,9 @@ ERROR:
 }
 
 // Put put cache to redis.
-func (self *RedisCache) Put(key string, val interface{}, timeout time.Duration) error {
+func (self *RedisCache) Put(key string, val interface{}, timeout int) error {
 	var err error
-	if _, err = self.do("SETEX", key, int64(timeout/time.Second), val); err != nil {
+	if _, err = self.do("SETEX", key, int64(timeout), val); err != nil {
 		return err
 	}
 	return err
@@ -157,15 +160,6 @@ func (self *RedisCache) Deletes(keys []interface{}) (int, error) {
 	return rs, err
 }
 
-// IsExist check cache's existence in redis.
-func (self *RedisCache) IsExist(key string) bool {
-	v, err := redis.Bool(self.do("EXISTS", key))
-	if err != nil {
-		return false
-	}
-	return v
-}
-
 // Incr increase counter in redis.
 func (self *RedisCache) Incr(key string) (int64, error) {
 	rs, err := redis.Int64(self.do("INCRBY", key, 1))
@@ -176,6 +170,64 @@ func (self *RedisCache) Incr(key string) (int64, error) {
 func (self *RedisCache) Decr(key string) (int64, error) {
 	rs, err := redis.Int64(self.do("INCRBY", key, -1))
 	return rs, err
+}
+
+// IsExist check cache's existence in redis.
+func (self *RedisCache) IsExist(key string) bool {
+	v, err := redis.Bool(self.do("EXISTS", key))
+	if err != nil {
+		return false
+	}
+	return v
+}
+
+// Expire EXPIRE
+func (self *RedisCache) Expire(key string, timeout int) bool {
+	v, err := redis.Bool(self.do("EXPIRE", key, int64(timeout)))
+	if err != nil {
+		return false
+	}
+	return v
+}
+
+
+// PutStruct
+func (self *RedisCache) PutStruct(key string, val interface{}, timeout int) error {
+	c := self.pool.Get()
+	defer c.Close()
+	args := redis.Args{}.Add(key).AddFlat(val)
+	c.Send("HMSET", args...)
+	if timeout > 0 {
+		c.Send("EXPIRE", key, int64(timeout))
+	}
+	c.Flush()
+	_, err := redis.String(c.Receive())
+	if err != nil {
+		return err
+	}
+	if timeout > 0 {
+		rs, err := redis.Bool(c.Receive())
+		if err != nil {
+			return err
+		}
+		if !rs {
+			return errors.New("PutStruct set timeout fail")
+		}
+	}
+	return nil
+}
+
+// GetStruct get cache struct by key
+func (self *RedisCache) GetStruct(key string, dest interface{}) error {
+	rs, err := redis.Values(self.do("HGETALL", key))
+	if err != nil {
+		return err
+	}
+	err = redis.ScanStruct(rs, dest)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func init() {

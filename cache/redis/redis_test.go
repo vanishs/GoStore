@@ -16,11 +16,10 @@ package redis
 
 import (
 	"testing"
-	"time"
 	"github.com/seewindcn/GoStore/cache"
 )
 
-func TestRedisCache(t *testing.T) {
+func preRedis(t *testing.T) cache.Cache {
 	config := map[string] interface{} {
 		"addr": "127.0.0.1:6379",
 	}
@@ -28,11 +27,44 @@ func TestRedisCache(t *testing.T) {
 	if err != nil {
 		t.Error("init err")
 	}
-	timeoutDuration := 10 * time.Second
-	if err = bm.Put("astaxie", 1, timeoutDuration); err != nil {
+	return bm
+}
+
+func TestRedisCache(t *testing.T) {
+	var err error
+	bm := preRedis(t)
+	if err = bm.Put("redis", 1, 10); err != nil {
 		t.Error("set Error", err)
 	}
-	if !bm.IsExist("astaxie") {
+	if !bm.IsExist("redis") {
 		t.Error("check err")
+	}
+}
+
+type Obj struct {
+	Name string
+	Sex int
+	Level int
+}
+
+func TestStructRedisCache(t *testing.T) {
+	var err error
+	key := "obj1"
+	bm := preRedis(t).(cache.StructCache)
+	o1 := &Obj{
+		Name:"abc",
+		Sex: 1,
+		Level: 10,
+	}
+	if err = bm.PutStruct(key, o1, 10); err != nil {
+		t.Error("PutStruct", err)
+	}
+
+	o2 := Obj{}
+	if err = bm.GetStruct(key, &o2); err != nil {
+		t.Error("GetStruct", err)
+	}
+	if o2.Name != "abc" || o2.Sex != 1 || o2.Level != 10 {
+		t.Fatalf("GetStruct values(%s) no vaild", o2)
 	}
 }
