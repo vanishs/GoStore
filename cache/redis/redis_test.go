@@ -17,6 +17,7 @@ package redis
 import (
 	"testing"
 	"github.com/seewindcn/GoStore/cache"
+	"reflect"
 )
 
 func preRedis(t *testing.T) cache.Cache {
@@ -56,15 +57,37 @@ func TestStructRedisCache(t *testing.T) {
 		Sex: 1,
 		Level: 10,
 	}
-	if err = bm.PutStruct(key, o1, 10); err != nil {
+	table := "obj"
+	if err = bm.PutStruct(table, key, o1, 10); err != nil {
 		t.Error("PutStruct", err)
 	}
+	//time.Sleep(11*time.Second)
 
 	o2 := Obj{}
-	if err = bm.GetStruct(key, &o2); err != nil {
+	ok, err := bm.GetStruct(table, key, &o2)
+	if err != nil {
 		t.Error("GetStruct", err)
-	}
-	if o2.Name != "abc" || o2.Sex != 1 || o2.Level != 10 {
+	} else if !ok {
+		t.Error("GetStruct NoFound")
+	} else if o2.Name != "abc" || o2.Sex != 1 || o2.Level != 10 {
 		t.Fatalf("GetStruct values(%s) no vaild", o2)
+	}
+
+
+	//
+	dest := "ddd"
+	reflect.TypeOf(dest)
+	exist, err := bm.SetStField(table, key, "Name", dest)
+	if err != nil {
+		t.Error("SetStField", err)
+	} else if !exist {
+		t.Fatal("SetStField:no exist")
+	}
+
+	val, err := bm.GetStField(table, key, "Name", reflect.String);
+	if err != nil {
+		t.Error("GetStField", err)
+	} else if val.(string) != dest {
+		t.Fatalf("GetStField:val(%s) != %s", val, dest)
 	}
 }

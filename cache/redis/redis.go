@@ -5,9 +5,9 @@ import (
 	"time"
 	"github.com/garyburd/redigo/redis"
 	"github.com/seewindcn/GoStore/cache"
-	//"errors"
-	//"fmt"
 	"errors"
+	"reflect"
+	"fmt"
 )
 
 var (
@@ -26,6 +26,24 @@ func New() cache.Cache {
 	return &RedisCache{
 		dbNum:0,
 	}
+}
+
+func _redis2value(t reflect.Kind, val interface{}, err error) (interface{}, error) {
+	switch t {
+	case reflect.String:
+		return redis.String(val, err)
+	case reflect.Bool:
+		return redis.Bool(val, err)
+	case reflect.Int:
+		return redis.Int(val, err)
+	case reflect.Int64:
+		return redis.Int64(val, err)
+	case reflect.Uint64:
+		return redis.Uint64(val, err)
+	case reflect.Float64:
+		return redis.Float64(val, err)
+	}
+	return nil, errors.New(fmt.Sprintf("Kind(%s) no support", t))
 }
 
 // config
@@ -191,14 +209,19 @@ func (self *RedisCache) Expire(key string, timeout int) bool {
 }
 
 
+func (self *RedisCache) fullKey(table, key string) string {
+	return table + "-" + key
+}
+
 // PutStruct
-func (self *RedisCache) PutStruct(key string, val interface{}, timeout int) error {
+func (self *RedisCache) PutStruct(table, key string, val interface{}, timeout int) error {
+	fkey := self.fullKey(table, key)
 	c := self.pool.Get()
 	defer c.Close()
-	args := redis.Args{}.Add(key).AddFlat(val)
+	args := redis.Args{}.Add(fkey).AddFlat(val)
 	c.Send("HMSET", args...)
 	if timeout > 0 {
-		c.Send("EXPIRE", key, int64(timeout))
+		c.Send("EXPIRE", fkey, int64(timeout))
 	}
 	c.Flush()
 	_, err := redis.String(c.Receive())
@@ -218,17 +241,44 @@ func (self *RedisCache) PutStruct(key string, val interface{}, timeout int) erro
 }
 
 // GetStruct get cache struct by key
-func (self *RedisCache) GetStruct(key string, dest interface{}) error {
-	rs, err := redis.Values(self.do("HGETALL", key))
+func (self *RedisCache) GetStruct(table, key string, dest interface{}) (bool, error) {
+	fkey := self.fullKey(table, key)
+	rs, err := redis.Values(self.do("HGETALL", fkey))
+	//fmt.Printf("*****%s, %s", rs, err)
 	if err != nil {
-		return err
+		return false, err
+	}
+	if len(rs) == 0 {
+		return false, nil
 	}
 	err = redis.ScanStruct(rs, dest)
 	if err != nil {
-		return err
+		return false, err
 	}
-	return nil
+	return true, nil
 }
+
+// get struct field
+func (self *RedisCache) GetStField(table, key, field string, t reflect.Kind) (val interface{}, err error) {
+	fkey := self.fullKey(table, key)
+	//exist, err := redis.Bool(self.do("HEXISTS", fkey, field))
+	val, err = self.do("HGET", fkey, field)
+	if err != nil {
+		return nil, err
+	}
+	return _redis2value(t, val, err)
+}
+
+// set struct field
+func (self *RedisCache) SetStField(table, key, field string, val interface{}) (exist bool, err error) {
+	fkey := self.fullKey(table, key)
+	if !self.IsExist(fkey) {
+		return false, nil
+	}
+	_, err = self.do("HSET", fkey, field, val)
+	return true, err
+}
+
 
 func init() {
 	cache.Register("redis", New)

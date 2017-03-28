@@ -2,9 +2,12 @@ package cache
 
 import (
 	"fmt"
+	"reflect"
 )
 
 type Cache interface {
+	// start cache
+	Start(config map[string]interface{}) error
 	// get cached value by key.
 	Get(key string) interface{}
 	// GetMulti is a batch version of Get.
@@ -23,16 +26,21 @@ type Cache interface {
 	IsExist(key string) bool
 	// EXPIRE
 	Expire(key string, timeout int) bool
-	// start cache
-	Start(config map[string]interface{}) error
-
 }
 
 type StructCache interface {
 	// **********Struct support********** //
-	// get cache struct by key
-	GetStruct(key string, dest interface{}) error
-	PutStruct(key string, val interface{}, timeout int) error
+	//table suggest use short string if use redis cache,
+	// get cache struct by key,
+	GetStruct(table, key string, dest interface{}) (exist bool, err error)
+	// put struct in cache by key
+	PutStruct(table, key string, val interface{}, timeout int) error
+	// get struct field, error if no exist
+	GetStField(table, key, field string, t reflect.Kind) (val interface{}, err error)
+	// set struct field
+	SetStField(table, key, field string, val interface{}) (exist bool, err error)
+	// get all field's names
+	//AllFieldNames(table, key string)
 }
 
 // Instance is a function create a new Cache Instance
