@@ -1,4 +1,3 @@
-
 package redis
 
 import (
@@ -277,6 +276,15 @@ func (self *RedisCache) SetStField(table, key, field string, val interface{}) (e
 	}
 	_, err = self.do("HSET", fkey, field, val)
 	return true, err
+}
+
+func (self *RedisCache) GetStFieldNames(table, key string) []string {
+	fkey := self.fullKey(table, key)
+	keys, err := redis.Strings(self.do("HKEYS", fkey))
+	if err != nil {
+		return []string{}
+	}
+	return keys
 }
 
 

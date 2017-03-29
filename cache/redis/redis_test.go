@@ -18,6 +18,7 @@ import (
 	"testing"
 	"github.com/seewindcn/GoStore/cache"
 	"reflect"
+	"fmt"
 )
 
 func preRedis(t *testing.T) cache.Cache {
@@ -63,6 +64,7 @@ func TestStructRedisCache(t *testing.T) {
 	}
 	//time.Sleep(11*time.Second)
 
+	// *********GetStruct
 	o2 := Obj{}
 	ok, err := bm.GetStruct(table, key, &o2)
 	if err != nil {
@@ -74,7 +76,7 @@ func TestStructRedisCache(t *testing.T) {
 	}
 
 
-	//
+	// ******SetStField
 	dest := "ddd"
 	reflect.TypeOf(dest)
 	exist, err := bm.SetStField(table, key, "Name", dest)
@@ -84,10 +86,18 @@ func TestStructRedisCache(t *testing.T) {
 		t.Fatal("SetStField:no exist")
 	}
 
+	// *****GetStField
 	val, err := bm.GetStField(table, key, "Name", reflect.String);
 	if err != nil {
 		t.Error("GetStField", err)
 	} else if val.(string) != dest {
 		t.Fatalf("GetStField:val(%s) != %s", val, dest)
+	}
+
+	// *****GetStFieldNames
+	keys := bm.GetStFieldNames(table, key)
+	fmt.Printf("GetStFieldNames:%s\n", keys)
+	if len(keys) != 3 {
+		t.Fatalf("GetStFieldNames error:%s", keys)
 	}
 }
