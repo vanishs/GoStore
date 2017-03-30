@@ -3,11 +3,12 @@ package cache
 import (
 	"fmt"
 	"reflect"
+	. "github.com/seewindcn/GoStore"
 )
 
 type Cache interface {
 	// start cache
-	Start(config map[string]interface{}) error
+	Start(config M) error
 	// get cached value by key.
 	Get(key string) interface{}
 	// GetMulti is a batch version of Get.

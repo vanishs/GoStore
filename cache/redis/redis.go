@@ -3,6 +3,7 @@ package redis
 import (
 	"time"
 	"github.com/garyburd/redigo/redis"
+	. "github.com/seewindcn/GoStore"
 	"github.com/seewindcn/GoStore/cache"
 	"errors"
 	"reflect"
@@ -46,7 +47,7 @@ func _redis2value(t reflect.Kind, val interface{}, err error) (interface{}, erro
 }
 
 // config
-func (self *RedisCache) config(config map[string] interface{}) error {
+func (self *RedisCache) config(config M) error {
 	for key, value := range config {
 		if key == "addr" {
 			self.addr = value.(string)
@@ -60,7 +61,7 @@ func (self *RedisCache) config(config map[string] interface{}) error {
 }
 
 //Start start cache
-func (self *RedisCache) Start(config map[string]interface{}) error {
+func (self *RedisCache) Start(config M) error {
 	err := self.config(config)
 	if err != nil {
 		return err
