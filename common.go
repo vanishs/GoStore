@@ -32,12 +32,8 @@ func NewTableInfo() *TableInfo {
 
 func (self *TableInfo) GetKey(obj interface{}) interface{} {
 	v := GetValue(obj)
-	return v.Field(self.KeyIndex).Elem()
-}
-
-func (self *TableInfo) GetIntKey(obj interface{}) int64 {
-	v := GetValue(obj)
-	return v.Field(self.KeyIndex).Int()
+	fv := v.Field(self.KeyIndex)
+	return fv.Interface()
 }
 
 func (self *TableInfo) GetStrKey(obj interface{}) string {

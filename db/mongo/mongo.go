@@ -100,7 +100,7 @@ func (self *MongoDB) _initAutoInc(db *mgo.Database, info *TableInfo, v reflect.V
 	if info == nil {
 		return
 	}
-	fmt.Printf("*********%s, %s\n", v, v.Kind())
+	//fmt.Printf("*********%s, %s\n", v, v.Kind())
 	fv := v.Field(info.KeyIndex)
 	if info.Params[IS_AUTO_INC].(bool) && fv.Int()==0 {
 		fv.SetInt(int64(autoInc(db, info.Name)))
@@ -135,6 +135,28 @@ func (self *MongoDB) _save(db *mgo.Database, table string, obj interface{}) erro
 	return nil
 }
 
+func (self *MongoDB) Load(table, key string, obj interface{}) error {
+	info := self.Infos.GetTableInfo(obj)
+	if info != nil {
+		return self.LoadByInfo(info, obj)
+	}
+	s := self.s.Copy()
+	defer s.Close()
+	_db := s.DB("")
+	kv := GetValue(obj).FieldByName(key).Interface()
+	return self._load(_db, table, kv, obj)
+}
+
+func (self *MongoDB) LoadByInfo(info *TableInfo, obj interface{}) error {
+	s := self.s.Copy()
+	defer s.Close()
+	_db := s.DB("")
+	return self._load(_db, info.Name, info.GetKey(obj), obj)
+}
+
+func (self *MongoDB) _load(db *mgo.Database, table string, key, obj interface{}) error {
+	return db.C(table).Find(M{ID_FIELD:key}).One(obj)
+}
 
 func init() {
 	db.Register("mongodb", NewMongoDB)

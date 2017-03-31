@@ -4,6 +4,7 @@ import (
 	"testing"
 	. "github.com/seewindcn/GoStore"
 	"reflect"
+	"fmt"
 )
 
 type Obj1 struct {
@@ -36,8 +37,16 @@ func TestNew(t *testing.T) {
 	}
 
 	//
-	o1 := &Obj1{Name:"abc", Sex:2}
+	o1 := &Obj1{Id:0, Name:"abc", Sex:2}
 	if err := store.Save(o1); err != nil {
 		t.Error("store save error:", err)
+	}
+	o2 := &Obj1{Id:o1.Id}
+	if err := store.Load(o2); err != nil {
+		t.Error("store load error:", err)
+	}
+	fmt.Printf("store laod:%s", o2)
+	if o2.Name != "abc" || o2.Sex != 2 {
+		t.Fatalf("store load error:%s", o2)
 	}
 }

@@ -13,7 +13,8 @@ type DB interface {
 	// insert or modify to db
 	Save(table string, obj interface{}) error
 	SaveByInfo(info *TableInfo, obj interface{}) error
-	//Load(table, key string, t reflect.Type) (obj interface{}, err error)
+	Load(table, key string, obj interface{}) error
+	LoadByInfo(info *TableInfo, obj interface{}) error
 	//LoadAll(table string, t reflect.Type) (objs []interface{}, err error)
 	//Update(table, key string, fields M) error
 }

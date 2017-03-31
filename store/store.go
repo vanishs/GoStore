@@ -86,3 +86,13 @@ func (self *Store) Save(obj interface{}) error {
 	return nil
 }
 
+func (self *Store) Load(obj interface{}) error {
+	info := self.Infos.GetTableInfo(obj)
+	if info == nil {
+		panic(fmt.Sprintf("store save: info no found for obj:%s", obj))
+	}
+	if reflect.TypeOf(obj).Kind() != reflect.Ptr {
+		panic("store load obj much be struct's pointer")
+	}
+	return self.Db.LoadByInfo(info, obj)
+}
