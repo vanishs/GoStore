@@ -21,9 +21,7 @@ type Obj2 struct {
 
 func preMongoDB(t *testing.T) (db.DB, error) {
 	m := NewMongoDB()
-	err := m.Start(M{
-		"url": "mongodb://127.0.0.1:27017/tmp?maxPoolSize=100&connect=direct",
-	})
+	err := m.Start(MongodbTestConfig)
 	if err != nil {
 		t.Error("MongoDB new error:", err)
 		return nil, err

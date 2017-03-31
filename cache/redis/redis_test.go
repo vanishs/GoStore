@@ -19,13 +19,11 @@ import (
 	"github.com/seewindcn/GoStore/cache"
 	"reflect"
 	"fmt"
+	. "github.com/seewindcn/GoStore"
 )
 
 func preRedis(t *testing.T) cache.Cache {
-	config := map[string] interface{} {
-		"addr": "127.0.0.1:6379",
-	}
-	bm, err := cache.NewCache("redis", config)
+	bm, err := cache.NewCache("redis", RedisTestConfig)
 	if err != nil {
 		t.Error("init err")
 	}

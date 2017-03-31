@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"gopkg.in/mgo.v2/bson"
 	"github.com/seewindcn/GoStore/db"
+	"reflect"
 )
 
 var (
@@ -63,6 +64,11 @@ func (self *MongoDB) Start(config M) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (self *MongoDB) RegTable(info *TableInfo, st reflect.Type) error {
+
 	return nil
 }
 

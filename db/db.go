@@ -3,22 +3,19 @@ package db
 import (
 	. "github.com/seewindcn/GoStore"
 	"fmt"
+	"reflect"
 )
 
 
 type DB interface {
 	Start(config M) error
+	// register table
+	RegTable(info *TableInfo, st reflect.Type) error
 	// insert or modify to db
 	Save(table string, obj interface{}) error
 	//Load(table, key string, t reflect.Type) (obj interface{}, err error)
 	//LoadAll(table string, t reflect.Type) (objs []interface{}, err error)
 	//Update(table, key string, fields M) error
-}
-
-type TableInfo struct {
-	Name string
-	IdName string  //main id in struct's field name
-	IsCache bool
 }
 
 // Instance is a function create a new DB Instance
