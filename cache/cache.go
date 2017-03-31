@@ -63,16 +63,12 @@ func Register(name string, adapter Instance) {
 	adapters[name] = adapter
 }
 
-func NewCache(name string, config M) (adapter Cache, err error){
+func NewCache(name string) (adapter Cache, err error){
 	instFunc, ok := adapters[name]
 	if !ok {
 		err = fmt.Errorf("cache: unknown adapter name %q", name)
 		return
 	}
 	adapter = instFunc()
-	err = adapter.Start(config)
-	if err != nil {
-		adapter = nil
-	}
 	return
 }

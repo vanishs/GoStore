@@ -3,16 +3,16 @@ package db
 import (
 	. "github.com/seewindcn/GoStore"
 	"fmt"
-	"reflect"
 )
 
 
 type DB interface {
-	Start(config M) error
+	Start(infos TableInfos, config M) error
 	// register table
-	RegTable(info *TableInfo, st reflect.Type) error
+	RegTable(info *TableInfo) error
 	// insert or modify to db
 	Save(table string, obj interface{}) error
+	SaveByInfo(info *TableInfo, obj interface{}) error
 	//Load(table, key string, t reflect.Type) (obj interface{}, err error)
 	//LoadAll(table string, t reflect.Type) (objs []interface{}, err error)
 	//Update(table, key string, fields M) error
@@ -36,16 +36,12 @@ func Register(name string, adapter Instance) {
 	adapters[name] = adapter
 }
 
-func NewDB(name string, config M) (adapter DB, err error){
+func NewDB(name string) (adapter DB, err error){
 	instFunc, ok := adapters[name]
 	if !ok {
 		err = fmt.Errorf("db: unknown adapter name %q", name)
 		return
 	}
 	adapter = instFunc()
-	err = adapter.Start(config)
-	if err != nil {
-		adapter = nil
-	}
 	return
 }

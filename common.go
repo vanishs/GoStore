@@ -1,14 +1,9 @@
 package GoStore
 
-import "encoding/json"
-
-type M map[string]interface{}
-
-type TableInfo struct {
-	Name string
-	IdName string  //main id in struct's field name
-	IsCache bool
-}
+import (
+	"encoding/json"
+	"reflect"
+)
 
 var (
 	MongodbTestConfig = M{
@@ -19,6 +14,29 @@ var (
 	}
 )
 
+type M map[string]interface{}
+
+type TableInfo struct {
+	Name string
+	IsCache bool
+	SType reflect.Type
+	Params M
+}
+
+func NewTableInfo() *TableInfo {
+	return &TableInfo{Params:make(M)}
+}
+
+type TableInfos map[reflect.Type]*TableInfo
+
+func (self TableInfos) GetTableInfo(obj interface{}) *TableInfo {
+	st := GetValue(obj).Type()
+	info, ok := self[st]
+	if !ok {
+		return nil
+	}
+	return info
+}
 
 func Json2Map(sjson string)  (M, error) {
 	var rs interface{}
@@ -28,4 +46,14 @@ func Json2Map(sjson string)  (M, error) {
 	}
 	return rs.(M), nil
 }
+
+// get obj's Value, no ptrValue
+func GetValue(obj interface{}) reflect.Value {
+	v := reflect.ValueOf(obj)
+	if v.Kind() == reflect.Ptr {  // if obj is pointer,
+		v = v.Elem()
+	}
+	return v
+}
+
 

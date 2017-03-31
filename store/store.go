@@ -7,6 +7,7 @@ import (
 	_ "github.com/seewindcn/GoStore/db/mongo"
 	"github.com/seewindcn/GoStore/cache"
 	_ "github.com/seewindcn/GoStore/cache/redis"
+	"fmt"
 )
 
 
@@ -14,16 +15,16 @@ type Store struct {
 	Cache cache.Cache
 	StCache cache.StructCache
 	Db db.DB
-	TableInfos map[reflect.Type]*TableInfo
+	Infos TableInfos
 }
 
 
 func New() *Store {
-	return &Store{TableInfos:make(map[reflect.Type]*TableInfo)}
+	return &Store{Infos:make(map[reflect.Type]*TableInfo)}
 }
 
-func (self *Store) NewCache(name string, config M) error {
-	c, err := cache.NewCache(name, config)
+func (self *Store) NewCache(name string) error {
+	c, err := cache.NewCache(name)
 	if err != nil {
 		return err
 	}
@@ -32,13 +33,26 @@ func (self *Store) NewCache(name string, config M) error {
 	return nil
 }
 
-func (self *Store) NewDB(name string, config M) error {
-	db, err := db.NewDB(name, config)
+func (self *Store) NewDB(name string) error {
+	_db, err := db.NewDB(name)
 	if err != nil {
 		return err
 	}
-	self.Db = db
-	//fmt.Println("NewDB:", db)
+	self.Db = _db
+	return nil
+}
+
+func (self *Store) Start(dbCfg M, cacheCfg M) error {
+	if dbCfg != nil {
+		if err := self.Db.Start(self.Infos, dbCfg); err != nil {
+			return err
+		}
+	}
+	if cacheCfg != nil {
+		if err := self.Cache.Start(cacheCfg); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -47,11 +61,22 @@ func (self *Store) RegTable(table string, st reflect.Type, isCache bool) {
 	if st == nil {
 		panic("store: RegTable st is nil")
 	}
-	if _, ok := self.TableInfos[st]; ok {
+	if _, ok := self.Infos[st]; ok {
 		panic("store: RegTable call twice for table " + table)
 	}
-	info := &TableInfo{Name:table, IsCache:isCache}
-	self.TableInfos[st] = info
-	self.Db.RegTable(info, st)
+	info := NewTableInfo()
+	info.Name = table
+	info.IsCache = isCache
+	info.SType = st
+	self.Infos[st] = info
+	self.Db.RegTable(info)
+}
+
+func (self *Store) Save(obj interface{}) error {
+	info := self.Infos.GetTableInfo(obj)
+	if info == nil {
+		panic(fmt.Sprintf("store save: info no found for obj:%s", obj))
+	}
+	return self.Db.Save(info.Name, obj)
 }
 

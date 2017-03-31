@@ -8,7 +8,7 @@ import (
 )
 
 type Obj1 struct {
-	Id int `"bson:_id"`
+	Id int `bson:"_id"`
 	Name string
 	Sex int
 }
@@ -21,7 +21,7 @@ type Obj2 struct {
 
 func preMongoDB(t *testing.T) (db.DB, error) {
 	m := NewMongoDB()
-	err := m.Start(MongodbTestConfig)
+	err := m.Start(nil, MongodbTestConfig)
 	if err != nil {
 		t.Error("MongoDB new error:", err)
 		return nil, err
