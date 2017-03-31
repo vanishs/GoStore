@@ -3,6 +3,8 @@ package GoStore
 import (
 	"encoding/json"
 	"reflect"
+	"strconv"
+	"fmt"
 )
 
 var (
@@ -18,6 +20,7 @@ type M map[string]interface{}
 
 type TableInfo struct {
 	Name string
+	KeyIndex int
 	IsCache bool
 	SType reflect.Type
 	Params M
@@ -25,6 +28,28 @@ type TableInfo struct {
 
 func NewTableInfo() *TableInfo {
 	return &TableInfo{Params:make(M)}
+}
+
+func (self *TableInfo) GetKey(obj interface{}) interface{} {
+	v := GetValue(obj)
+	return v.Field(self.KeyIndex).Elem()
+}
+
+func (self *TableInfo) GetIntKey(obj interface{}) int64 {
+	v := GetValue(obj)
+	return v.Field(self.KeyIndex).Int()
+}
+
+func (self *TableInfo) GetStrKey(obj interface{}) string {
+	v := GetValue(obj)
+	fv := v.Field(self.KeyIndex)
+	switch fv.Kind() {
+	case reflect.Int, reflect.Int32, reflect.Int64:
+		return strconv.Itoa(int(fv.Int()))
+	case reflect.String:
+		return fv.String()
+	}
+	panic(fmt.Sprintf("GetStrKey no support:%s", obj))
 }
 
 type TableInfos map[reflect.Type]*TableInfo

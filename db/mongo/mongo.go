@@ -88,7 +88,7 @@ func (self *MongoDB) RegTable(info *TableInfo) error {
 		s := f.Tag.Get("bson")
 		//fmt.Println("*********", i, f, "----", s)
 		if strings.Contains(s, ID_FIELD) {
-			info.Params[ID_FIELD] = i
+			info.KeyIndex = i
 			info.Params[IS_AUTO_INC] = isInt(f.Type.Kind())
 			break
 		}
@@ -101,7 +101,7 @@ func (self *MongoDB) _initAutoInc(db *mgo.Database, info *TableInfo, v reflect.V
 		return
 	}
 	fmt.Printf("*********%s, %s\n", v, v.Kind())
-	fv := v.Field(info.Params[ID_FIELD].(int))
+	fv := v.Field(info.KeyIndex)
 	if info.Params[IS_AUTO_INC].(bool) && fv.Int()==0 {
 		fv.SetInt(int64(autoInc(db, info.Name)))
 	}
