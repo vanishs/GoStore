@@ -8,6 +8,7 @@ import (
 
 type DB interface {
 	Start(infos TableInfos, config M) error
+	Stop() error
 	// register table
 	RegTable(info *TableInfo) error
 	// insert or modify to db
@@ -15,7 +16,9 @@ type DB interface {
 	SaveByInfo(info *TableInfo, obj interface{}) error
 	Load(table, key string, obj interface{}) error
 	LoadByInfo(info *TableInfo, obj interface{}) error
-	//LoadAll(table string, t reflect.Type) (objs []interface{}, err error)
+	Loads(table string, query M, obj interface{}) error
+	Delete(table string, id interface{}) error
+	Deletes(table string, query M) (count int, err error)
 	//Update(table, key string, fields M) error
 }
 

@@ -51,7 +51,7 @@ func (self *TableInfo) GetStrKey(obj interface{}) string {
 type TableInfos map[reflect.Type]*TableInfo
 
 func (self TableInfos) GetTableInfo(obj interface{}) *TableInfo {
-	st := GetValue(obj).Type()
+	st := GetType(obj)
 	info, ok := self[st]
 	if !ok {
 		return nil
@@ -70,11 +70,29 @@ func Json2Map(sjson string)  (M, error) {
 
 // get obj's Value, no ptrValue
 func GetValue(obj interface{}) reflect.Value {
-	v := reflect.ValueOf(obj)
+	var v reflect.Value
+	if rs, ok := obj.(reflect.Value); ok {
+		v = rs
+	} else {
+		v = reflect.ValueOf(obj)
+	}
 	if v.Kind() == reflect.Ptr {  // if obj is pointer,
 		v = v.Elem()
 	}
 	return v
+}
+
+func GetType(obj interface{}) reflect.Type {
+	var t reflect.Type
+	switch inst := obj.(type) {
+	case reflect.Type:
+		t = inst
+	case reflect.Value:
+		t = GetValue(inst).Type()
+	default:
+		t = GetValue(inst).Type()
+	}
+	return t
 }
 
 

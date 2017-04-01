@@ -20,7 +20,7 @@ type Obj2 struct {
 }
 
 
-func TestNew(t *testing.T) {
+func TestStore(t *testing.T) {
 	store := New()
 	println("new store", store)
 	if err := store.NewDB("mongodb"); err != nil {
@@ -49,4 +49,8 @@ func TestNew(t *testing.T) {
 	if o2.Name != o1.Name || o2.Sex != o1.Sex {
 		t.Fatalf("store load error:%s", o2)
 	}
+
+	objs := []Obj1{}
+	store.Loads(M{"sex":2}, &objs)
+	fmt.Println("*****", len(objs), objs[0])
 }

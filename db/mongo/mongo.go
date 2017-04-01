@@ -80,6 +80,11 @@ func (self *MongoDB) Start(infos TableInfos, config M) error {
 	return nil
 }
 
+func (self *MongoDB) Stop() error {
+	self.s.Close()
+	return nil
+}
+
 func (self *MongoDB) RegTable(info *TableInfo) error {
 	st := info.SType
 	c := st.NumField()
@@ -107,23 +112,31 @@ func (self *MongoDB) _initAutoInc(db *mgo.Database, info *TableInfo, v reflect.V
 	}
 }
 
+func (self *MongoDB) _getSessionAndDb() (*mgo.Session, *mgo.Database) {
+	s := self.s.Copy()
+	_db := s.DB("")
+	return s, _db
+}
+
 // Save insert or modify to db
 func (self *MongoDB) Save(table string, id, obj interface{}) error {
-	s := self.s.Copy()
+	s, _db := self._getSessionAndDb()
 	defer s.Close()
-	return self._save(s.DB(""), table, id, obj)
+	return self._save(_db, table, id, obj)
 }
 
 func (self *MongoDB) SaveByInfo(info *TableInfo, obj interface{}) error {
-	s := self.s.Copy()
+	s, _db := self._getSessionAndDb()
 	defer s.Close()
-	_db := s.DB("")
 	v := GetValue(obj)
 	self._initAutoInc(_db, info, v)
 	return self._save(_db, info.Name, info.GetKey(obj), obj)
 }
 
 func (self *MongoDB) _save(db *mgo.Database, table string, id, obj interface{}) error {
+	if id == nil {
+		return db.C(table).Insert(obj)
+	}
 	_, err := db.C(table).UpsertId(id, obj)
 	if err != nil {
 		return err
@@ -132,26 +145,42 @@ func (self *MongoDB) _save(db *mgo.Database, table string, id, obj interface{}) 
 }
 
 func (self *MongoDB) Load(table, key string, obj interface{}) error {
-	info := self.Infos.GetTableInfo(obj)
-	if info != nil {
-		return self.LoadByInfo(info, obj)
-	}
-	s := self.s.Copy()
+	s, _db := self._getSessionAndDb()
 	defer s.Close()
-	_db := s.DB("")
 	kv := GetValue(obj).FieldByName(key).Interface()
 	return self._load(_db, table, kv, obj)
 }
 
 func (self *MongoDB) LoadByInfo(info *TableInfo, obj interface{}) error {
-	s := self.s.Copy()
+	s, _db := self._getSessionAndDb()
 	defer s.Close()
-	_db := s.DB("")
 	return self._load(_db, info.Name, info.GetKey(obj), obj)
+}
+
+func (self *MongoDB) Loads(table string, query M, obj interface{}) error {
+	s, _db := self._getSessionAndDb()
+	defer s.Close()
+	return _db.C(table).Find(query).All(obj)
 }
 
 func (self *MongoDB) _load(db *mgo.Database, table string, key, obj interface{}) error {
 	return db.C(table).Find(M{ID_FIELD:key}).One(obj)
+}
+
+func (self *MongoDB) Delete(table string, id interface{}) error {
+	s, _db := self._getSessionAndDb()
+	defer s.Close()
+	return _db.C(table).RemoveId(id)
+}
+
+func (self *MongoDB) Deletes(table string, query M) (count int, err error) {
+	s, _db := self._getSessionAndDb()
+	defer s.Close()
+	if info, err := _db.C(table).RemoveAll(query); err != nil {
+		return 0, err
+	} else {
+		return info.Removed, err
+	}
 }
 
 func init() {

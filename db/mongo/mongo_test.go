@@ -19,25 +19,41 @@ type Obj2 struct {
 	Sex int
 }
 
-func preMongoDB(t *testing.T) (db.DB, error) {
+func preMongoDB(t *testing.T) db.DB {
 	m := NewMongoDB()
 	err := m.Start(nil, MongodbTestConfig)
 	if err != nil {
 		t.Error("MongoDB new error:", err)
-		return nil, err
+		return nil
 	}
-	return m, nil
+	return m
 }
 
 func TestMongoDB_Save(t *testing.T) {
-	m, err := preMongoDB(t)
-	o1 := &Obj1{ Name:"idtest", Sex:1}
+	var err error
+	m := preMongoDB(t)
+	defer m.Stop()
+	o1 := &Obj1{Name:"idtest", Sex:1}
 	o2 := &Obj2{Name:"idtest2", Sex:1}
-	err = m.Save("test1", o1)
-	err = m.Save("test1", o2)
+	err = m.Save("test1", nil, o1)
+	err = m.Save("test1", nil, o2)
+	o1.Id = 1
+	err = m.Save("test1", o1.Id, o1)
 	if err != nil {
 		t.Error("MongoDB.Save err:", err)
 	}
 	fmt.Printf("****o1:%s, %d", o1, o1.Id)
 }
+
+func TestMongoDB_Delete(t *testing.T) {
+	m := preMongoDB(t)
+	defer m.Stop()
+	m.Delete("test1", 1)
+	c, err := m.Deletes("test1", M{"name":"idtest2"})
+	if err != nil {
+		t.Error("Deletes error", err)
+	}
+	fmt.Println("******Deletes:", c)
+}
+
 
