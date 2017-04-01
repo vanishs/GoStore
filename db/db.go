@@ -11,7 +11,7 @@ type DB interface {
 	// register table
 	RegTable(info *TableInfo) error
 	// insert or modify to db
-	Save(table string, obj interface{}) error
+	Save(table string, id, obj interface{}) error
 	SaveByInfo(info *TableInfo, obj interface{}) error
 	Load(table, key string, obj interface{}) error
 	LoadByInfo(info *TableInfo, obj interface{}) error

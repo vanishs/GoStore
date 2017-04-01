@@ -37,7 +37,7 @@ func TestNew(t *testing.T) {
 	}
 
 	//
-	o1 := &Obj1{Id:0, Name:"abc", Sex:2}
+	o1 := &Obj1{Id:999, Name:"abc2233", Sex:2}
 	if err := store.Save(o1); err != nil {
 		t.Error("store save error:", err)
 	}
@@ -46,7 +46,7 @@ func TestNew(t *testing.T) {
 		t.Error("store load error:", err)
 	}
 	fmt.Printf("store laod:%s", o2)
-	if o2.Name != "abc" || o2.Sex != 2 {
+	if o2.Name != o1.Name || o2.Sex != o1.Sex {
 		t.Fatalf("store load error:%s", o2)
 	}
 }

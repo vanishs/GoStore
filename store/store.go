@@ -77,7 +77,7 @@ func (self *Store) Save(obj interface{}) error {
 	if info == nil {
 		panic(fmt.Sprintf("store save: info no found for obj:%s", obj))
 	}
-	if err := self.Db.Save(info.Name, obj); err != nil {
+	if err := self.Db.SaveByInfo(info, obj); err != nil {
 		return err
 	}
 	if info.IsCache {

@@ -108,14 +108,10 @@ func (self *MongoDB) _initAutoInc(db *mgo.Database, info *TableInfo, v reflect.V
 }
 
 // Save insert or modify to db
-func (self *MongoDB) Save(table string, obj interface{}) error {
-	info := self.Infos.GetTableInfo(obj)
-	if info != nil {
-		return self.SaveByInfo(info, obj)
-	}
+func (self *MongoDB) Save(table string, id, obj interface{}) error {
 	s := self.s.Copy()
 	defer s.Close()
-	return self._save(s.DB(""), table, obj)
+	return self._save(s.DB(""), table, id, obj)
 }
 
 func (self *MongoDB) SaveByInfo(info *TableInfo, obj interface{}) error {
@@ -124,11 +120,11 @@ func (self *MongoDB) SaveByInfo(info *TableInfo, obj interface{}) error {
 	_db := s.DB("")
 	v := GetValue(obj)
 	self._initAutoInc(_db, info, v)
-	return self._save(_db, info.Name, obj)
+	return self._save(_db, info.Name, info.GetKey(obj), obj)
 }
 
-func (self *MongoDB) _save(db *mgo.Database, table string, obj interface{}) error {
-	err := db.C(table).Insert(obj)
+func (self *MongoDB) _save(db *mgo.Database, table string, id, obj interface{}) error {
+	_, err := db.C(table).UpsertId(id, obj)
 	if err != nil {
 		return err
 	}
