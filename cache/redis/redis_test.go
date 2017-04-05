@@ -18,14 +18,19 @@ import (
 	"testing"
 	"github.com/seewindcn/GoStore/cache"
 	"reflect"
-	"fmt"
 	. "github.com/seewindcn/GoStore"
+	"log"
 )
 
 func preRedis(t *testing.T) cache.Cache {
-	bm, err := cache.NewCache("redis", RedisTestConfig)
-	if err != nil {
-		t.Error("init err")
+	var bm cache.Cache
+	var err error
+	if bm, err = cache.NewCache("redis"); err != nil {
+		t.Error("init err", err)
+		return nil
+	}
+	if err := bm.Start(RedisTestConfig); err != nil {
+		t.Error("Start err", err)
 	}
 	return bm
 }
@@ -94,7 +99,7 @@ func TestStructRedisCache(t *testing.T) {
 
 	// *****GetStFieldNames
 	keys := bm.GetStFieldNames(table, key)
-	fmt.Printf("GetStFieldNames:%s\n", keys)
+	log.Printf("GetStFieldNames:%s", keys)
 	if len(keys) != 3 {
 		t.Fatalf("GetStFieldNames error:%s", keys)
 	}

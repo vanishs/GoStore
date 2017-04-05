@@ -3,11 +3,11 @@ package mongo
 import (
 	"gopkg.in/mgo.v2"
 	. "github.com/seewindcn/GoStore"
-	"fmt"
 	"gopkg.in/mgo.v2/bson"
 	"github.com/seewindcn/GoStore/db"
 	"strings"
 	"reflect"
+	"log"
 )
 
 var (
@@ -38,7 +38,7 @@ func autoInc(db *mgo.Database, table string) int {
 		Upsert:    true,
 		ReturnNew: true,
 	}, &result); err != nil {
-		fmt.Println("autoInc error(1):", err.Error())
+		log.Println("autoInc error(1):", err.Error())
 	}
 	sec, _ := result[AUTO_INC_ID].(int)
 	return sec
@@ -73,7 +73,7 @@ func (self *MongoDB) Start(infos TableInfos, config M) error {
 	}
 	self.Infos = infos
 	self.s, err = mgo.Dial(self.url)
-	fmt.Printf("MongoStart:%s\n", self.url)
+	log.Printf("MongoStart:%s\n", self.url)
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func (self *MongoDB) RegTable(info *TableInfo) error {
 	for i := 0; i < c; i++ {
 		f := st.Field(i)
 		s := f.Tag.Get("bson")
-		//fmt.Println("*********", i, f, "----", s)
+		//log.Println("*********", i, f, "----", s)
 		if strings.Contains(s, ID_FIELD) {
 			info.KeyIndex = i
 			info.Params[IS_AUTO_INC] = isInt(f.Type.Kind())
@@ -105,7 +105,7 @@ func (self *MongoDB) _initAutoInc(db *mgo.Database, info *TableInfo, v reflect.V
 	if info == nil {
 		return
 	}
-	//fmt.Printf("*********%s, %s\n", v, v.Kind())
+	//log.Printf("*********%s, %s\n", v, v.Kind())
 	fv := v.Field(info.KeyIndex)
 	if info.Params[IS_AUTO_INC].(bool) && fv.Int()==0 {
 		fv.SetInt(int64(autoInc(db, info.Name)))

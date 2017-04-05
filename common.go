@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"reflect"
 	"strconv"
+	"log"
 	"fmt"
 )
 
@@ -96,3 +97,6 @@ func GetType(obj interface{}) reflect.Type {
 }
 
 
+func init() {
+	log.SetFlags(log.Lshortfile | log.LstdFlags)
+}

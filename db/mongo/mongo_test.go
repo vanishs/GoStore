@@ -3,8 +3,8 @@ package mongo
 import (
 	"testing"
 	. "github.com/seewindcn/GoStore"
-	"fmt"
 	"github.com/seewindcn/GoStore/db"
+	"log"
 )
 
 type Obj1 struct {
@@ -42,7 +42,7 @@ func TestMongoDB_Save(t *testing.T) {
 	if err != nil {
 		t.Error("MongoDB.Save err:", err)
 	}
-	fmt.Printf("****o1:%s, %d", o1, o1.Id)
+	log.Printf("****o1:%s, %d", o1, o1.Id)
 }
 
 func TestMongoDB_Delete(t *testing.T) {
@@ -53,7 +53,7 @@ func TestMongoDB_Delete(t *testing.T) {
 	if err != nil {
 		t.Error("Deletes error", err)
 	}
-	fmt.Println("******Deletes:", c)
+	log.Println("******Deletes:", c)
 }
 
 

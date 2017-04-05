@@ -4,7 +4,7 @@ import (
 	"testing"
 	. "github.com/seewindcn/GoStore"
 	"reflect"
-	"fmt"
+	"log"
 )
 
 type Obj1 struct {
@@ -45,12 +45,12 @@ func TestStore(t *testing.T) {
 	if err := store.Load(o2); err != nil {
 		t.Error("store load error:", err)
 	}
-	fmt.Printf("store laod:%s", o2)
+	log.Printf("store laod:%s", o2)
 	if o2.Name != o1.Name || o2.Sex != o1.Sex {
 		t.Fatalf("store load error:%s", o2)
 	}
 
 	objs := []Obj1{}
 	store.Loads(M{"sex":2}, &objs)
-	fmt.Println("*****", len(objs), objs[0])
+	log.Println("*****", len(objs), objs[0])
 }

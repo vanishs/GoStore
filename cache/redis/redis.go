@@ -244,7 +244,7 @@ func (self *RedisCache) PutStruct(table, key string, val interface{}, timeout in
 func (self *RedisCache) GetStruct(table, key string, dest interface{}) (bool, error) {
 	fkey := self.fullKey(table, key)
 	rs, err := redis.Values(self.do("HGETALL", fkey))
-	//fmt.Printf("*****%s, %s", rs, err)
+	//log.Printf("*****%s, %s", rs, err)
 	if err != nil {
 		return false, err
 	}
