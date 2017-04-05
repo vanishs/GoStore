@@ -42,7 +42,7 @@ func TestStore(t *testing.T) {
 		t.Error("store save error:", err)
 	}
 	o2 := &Obj1{Id:o1.Id}
-	if err := store.Load(o2); err != nil {
+	if err := store.Load(o2, true); err != nil {
 		t.Error("store load error:", err)
 	}
 	log.Printf("store laod:%s", o2)
@@ -53,4 +53,9 @@ func TestStore(t *testing.T) {
 	objs := []Obj1{}
 	store.Loads(M{"sex":2}, &objs)
 	log.Println("*****", len(objs), objs[0])
+
+	o3 := &Obj1{Id:o1.Id, Name:"cacheName"}
+	if err := store.CacheObj(o3); err != nil {
+		t.Error("store cache error", err)
+	}
 }

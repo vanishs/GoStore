@@ -8,6 +8,7 @@ import (
 	"github.com/seewindcn/GoStore/cache"
 	_ "github.com/seewindcn/GoStore/cache/redis"
 	"fmt"
+	"log"
 )
 
 
@@ -72,6 +73,15 @@ func (self *Store) RegTable(table string, st reflect.Type, isCache bool) {
 	self.Db.RegTable(info)
 }
 
+// CacheObj cache obj's some fields
+func (self *Store) CacheObj(obj interface{}) error {
+	info := self.Infos.GetTableInfo(obj)
+	if info == nil {
+		panic(fmt.Sprintf("store save: info no found for obj:%s", obj))
+	}
+	return self.StCache.PutStruct(info.Name, info.GetStrKey(obj), obj, 0)
+}
+
 func (self *Store) Save(obj interface{}) error {
 	info := self.Infos.GetTableInfo(obj)
 	if info == nil {
@@ -86,13 +96,22 @@ func (self *Store) Save(obj interface{}) error {
 	return nil
 }
 
-func (self *Store) Load(obj interface{}) error {
+// Load load from cache or db,
+func (self *Store) Load(obj interface{}, cache bool) error {
 	info := self.Infos.GetTableInfo(obj)
 	if info == nil {
 		panic(fmt.Sprintf("store save: info no found for obj:%s", obj))
 	}
 	if reflect.TypeOf(obj).Kind() != reflect.Ptr {
 		panic("store load obj much be struct's pointer")
+	}
+	if cache && info.IsCache && self.StCache != nil {
+		key := info.GetStrKey(obj)
+		exist, err := self.StCache.GetStruct(info.Name, key, obj)
+		log.Println("[store] load from cache", key, exist, err)
+		if err == nil && exist {
+			return nil
+		}
 	}
 	return self.Db.LoadByInfo(info, obj)
 }
@@ -108,3 +127,4 @@ func (self *Store) Loads(query M, obj interface{}) error {
 	self.Db.Loads(info.Name, query, obj)
 	return nil
 }
+
