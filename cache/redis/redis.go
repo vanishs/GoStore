@@ -113,6 +113,11 @@ func (self *RedisCache) do(cmd string, args ...interface{}) (reply interface{}, 
 	return c.Do(cmd, args...)
 }
 
+//Get Pools
+func (self *RedisCache) GetPools() []*redis.Pool {
+	return []*redis.Pool{self.pool}
+}
+
 // Get cache from redis.
 func (self *RedisCache) Get(key string) interface{} {
 	if v, err := self.do("GET", key); err == nil {

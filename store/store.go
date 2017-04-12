@@ -9,6 +9,8 @@ import (
 	_ "github.com/seewindcn/GoStore/cache/redis"
 	"fmt"
 	"log"
+	"github.com/seewindcn/GoStore/lock"
+	"time"
 )
 
 
@@ -16,6 +18,7 @@ type Store struct {
 	Cache cache.Cache
 	StCache cache.StructCache
 	Db db.DB
+	LockMgr *lock.LockMgr
 	Infos TableInfos
 }
 
@@ -41,6 +44,15 @@ func (self *Store) NewDB(name string) error {
 	}
 	self.Db = _db
 	return nil
+}
+
+func (self *Store) NewLockMgr(name string, expiry time.Duration, tries int, delay time.Duration) {
+	self.LockMgr = lock.New()
+	self.LockMgr.Init(self, name, expiry, tries, delay)
+}
+
+func (self *Store) NewLock(name string) lock.Lock {
+	return self.LockMgr.NewLock(name)
 }
 
 func (self *Store) Start(dbCfg M, cacheCfg M) error {
@@ -127,4 +139,6 @@ func (self *Store) Loads(query M, obj interface{}) error {
 	self.Db.Loads(info.Name, query, obj)
 	return nil
 }
+
+
 
