@@ -22,12 +22,14 @@ func preStore(t *testing.T) *store.Store{
 }
 
 func TestRedisLock(t *testing.T) {
+	expiry := time.Duration(5)
+
 	s := preStore(t)
-	lock := s.LockMgr.NewLock("lock_test")
+	lock := s.NewLockEx("lock_test", expiry, 0, 0)
 	lock.Lock()
 	defer lock.Unlock()
 	for i := 0; i < 3; i++ {
-		time.Sleep(7 * time.Second)
+		time.Sleep(expiry * time.Second)
 		if !lock.Extend() {
 			t.Error("lock Extend error")
 		}

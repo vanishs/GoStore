@@ -15,6 +15,7 @@ type Lock interface {
 
 type Driver interface {
 	NewLock(string) Lock
+	NewLockEx(name string, expiry time.Duration, tries int, delay time.Duration) Lock
 }
 
 //distributed lock mgr
@@ -50,6 +51,10 @@ func (self *LockMgr) Init(store interface{}, driver string, expiry time.Duration
 
 func (self *LockMgr) NewLock(name string) Lock {
 	return self.d.NewLock(name)
+}
+
+func (self *LockMgr) NewLockEx(name string, expiry time.Duration, tries int, delay time.Duration) Lock {
+	return self.d.NewLockEx(name, expiry, tries, delay)
 }
 
 var drivers = make(map[string]NewDriver)

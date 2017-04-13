@@ -96,6 +96,12 @@ func GetType(obj interface{}) reflect.Type {
 	return t
 }
 
+func If(condition bool, trueVal, falseVal interface{}) interface{} {
+	if condition {
+		return trueVal
+	}
+	return falseVal
+}
 
 func init() {
 	log.SetFlags(log.Lshortfile | log.LstdFlags)

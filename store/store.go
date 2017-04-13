@@ -55,6 +55,10 @@ func (self *Store) NewLock(name string) lock.Lock {
 	return self.LockMgr.NewLock(name)
 }
 
+func (self *Store) NewLockEx(name string, expiry time.Duration, tries int, delay time.Duration) lock.Lock {
+	return self.LockMgr.NewLock(name)
+}
+
 func (self *Store) Start(dbCfg M, cacheCfg M) error {
 	if dbCfg != nil {
 		if err := self.Db.Start(self.Infos, dbCfg); err != nil {
