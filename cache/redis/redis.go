@@ -215,6 +215,9 @@ func (self *RedisCache) Expire(key string, timeout int) bool {
 
 
 func (self *RedisCache) fullKey(table, key string) string {
+	if key== "" {
+		return table
+	}
 	return table + "-" + key
 }
 
@@ -275,9 +278,9 @@ func (self *RedisCache) GetStField(table, key, field string, t reflect.Kind) (va
 }
 
 // set struct field
-func (self *RedisCache) SetStField(table, key, field string, val interface{}) (exist bool, err error) {
+func (self *RedisCache) SetStField(table, key, field string, val interface{}, forced bool) (exist bool, err error) {
 	fkey := self.fullKey(table, key)
-	if !self.IsExist(fkey) {
+	if !forced && !self.IsExist(fkey) {
 		return false, nil
 	}
 	_, err = self.do("HSET", fkey, field, val)
@@ -293,6 +296,17 @@ func (self *RedisCache) GetStFieldNames(table, key string) []string {
 	return keys
 }
 
+// del struct field
+func (self *RedisCache) DelStField(table, key, field string) (bool, error) {
+	fkey := self.fullKey(table, key)
+	//exist, err := redis.Bool(self.do("HEXISTS", fkey, field))
+	rs, err := redis.Int(self.do("HDEL", fkey, field))
+	//log.Printf("****%s, %s", rs, err)
+	if err != nil  {
+		return false, err
+	}
+	return rs == 1, nil
+}
 
 func init() {
 	cache.Register("redis", New)

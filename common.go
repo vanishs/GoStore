@@ -19,6 +19,12 @@ var (
 
 type M map[string]interface{}
 
+type IRegistry interface {
+	CheckAndRegister(hash, name, value string) (string, bool)
+	UnRegister(hash, name, value string) bool
+	//Extend(hash, name string) bool
+}
+
 type TableInfo struct {
 	Name string
 	KeyIndex int

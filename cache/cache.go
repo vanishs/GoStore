@@ -39,9 +39,10 @@ type StructCache interface {
 	// get struct field, error if no exist
 	GetStField(table, key, field string, t reflect.Kind) (val interface{}, err error)
 	// set struct field
-	SetStField(table, key, field string, val interface{}) (exist bool, err error)
+	SetStField(table, key, field string, val interface{}, forced bool) (exist bool, err error)
 	// get all field's names
 	GetStFieldNames(table, key string) []string
+	DelStField(table, key, field string) (bool, error)
 }
 
 // Instance is a function create a new Cache Instance

@@ -3,6 +3,7 @@ package store
 import (
 	"testing"
 	. "github.com/seewindcn/GoStore"
+	_ "github.com/seewindcn/GoStore/lock/redis"
 	"reflect"
 	"log"
 )
@@ -57,5 +58,24 @@ func TestStore(t *testing.T) {
 	o3 := &Obj1{Id:o1.Id, Name:"cacheName"}
 	if err := store.CacheObj(o3); err != nil {
 		t.Error("store cache error", err)
+	}
+
+	// lockMgr
+	store.NewLockMgr("redis", 0, 0, 0)
+	testIRegistry(store)
+}
+
+// test IRegistry
+func testIRegistry(reg IRegistry) {
+	addr := "127.0.0.1"
+	rs, my := reg.CheckAndRegister("players", "uid1", addr)
+	if !my && rs != addr {
+		log.Printf("CheckAndRegister other:%s\n", rs)
+	}
+	reg.CheckAndRegister("players", "uid2", addr+"2")
+	reg.CheckAndRegister("players", "uid3", addr+"3")
+	ok := reg.UnRegister("players", "uid1", addr)
+	if !ok {
+		log.Println("CheckAndRegister unregister error")
 	}
 }

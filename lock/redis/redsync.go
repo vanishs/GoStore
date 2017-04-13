@@ -1,11 +1,10 @@
 package redis
 
 import (
+	"time"
 	"gopkg.in/redsync.v1"
 	"github.com/seewindcn/GoStore/lock"
 	"github.com/seewindcn/GoStore/cache/redis"
-	"github.com/seewindcn/GoStore/store"
-	"time"
 	"github.com/seewindcn/GoStore"
 )
 
@@ -20,8 +19,9 @@ type RedisDriver struct {
 }
 
 func New(mgr *lock.LockMgr, st interface{}) lock.Driver {
-	s := st.(*store.Store)
-	c := s.Cache.(*redis.RedisCache)
+	c := GoStore.GetValue(st).FieldByName("Cache").Interface().(*redis.RedisCache)
+	//s := st.(*store.Store)
+	//c := s.Cache.(*redis.RedisCache)
 	pools := []redsync.Pool{}
 	for _, p := range c.GetPools() {
 		pools = append(pools, p)

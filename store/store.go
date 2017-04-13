@@ -4,8 +4,8 @@ import (
 	"reflect"
 	. "github.com/seewindcn/GoStore"
 	"github.com/seewindcn/GoStore/db"
-	_ "github.com/seewindcn/GoStore/db/mongo"
 	"github.com/seewindcn/GoStore/cache"
+	_ "github.com/seewindcn/GoStore/db/mongo"
 	_ "github.com/seewindcn/GoStore/cache/redis"
 	"fmt"
 	"log"
@@ -142,6 +142,33 @@ func (self *Store) Loads(query M, obj interface{}) error {
 	info := self.Infos.GetTableInfo(v)
 	self.Db.Loads(info.Name, query, obj)
 	return nil
+}
+
+func (self *Store) CheckAndRegister(hash, name, value string) (string, bool) {
+	val, err := self.StCache.GetStField(hash, "", name, reflect.String)
+	if err != nil || val.(string) == ""  { // not exist
+		l := self.NewLock("_CAR_" + hash + "-" + name)
+		l.Lock()
+		defer l.Unlock()
+		val, err = self.StCache.GetStField(hash, "", name, reflect.String)
+		if err != nil {
+			self.StCache.SetStField(hash, "", name, value, true)
+			return value, true
+		}
+	}
+	return val.(string), false
+}
+
+func (self *Store) UnRegister(hash, name, value string) bool {
+	l := self.NewLock("_CAR_" + hash + "-" + name)
+	l.Lock()
+	defer l.Unlock()
+	val, err := self.StCache.GetStField(hash, "", name, reflect.String)
+	if err == nil && val.(string) == value  {
+		self.StCache.DelStField(hash, "", name)
+		return true
+	}
+	return false
 }
 
 
