@@ -74,6 +74,9 @@ func testIRegistry(reg IRegistry) {
 	}
 	reg.CheckAndRegister("players", "uid2", addr+"2")
 	reg.CheckAndRegister("players", "uid3", addr+"3")
+	if rs, ok := reg.CheckAndRegister("players", "uid4", ""); true {
+		log.Println("CheckAndRegister only check", ok, rs)
+	}
 	ok := reg.UnRegister("players", "uid1", addr)
 	if !ok {
 		log.Println("CheckAndRegister unregister error")

@@ -147,26 +147,34 @@ func (self *Store) Loads(query M, obj interface{}) error {
 func (self *Store) CheckAndRegister(hash, name, value string) (string, bool) {
 	val, err := self.StCache.GetStField(hash, "", name, reflect.String)
 	if err != nil || val.(string) == ""  { // not exist
+		if value == "" {  // if not exist, return "", false
+			return "", false
+		}
+
+		// set value
 		l := self.NewLock("_CAR_" + hash + "-" + name)
 		l.Lock()
 		defer l.Unlock()
 		val, err = self.StCache.GetStField(hash, "", name, reflect.String)
-		if err != nil {
+		if (err != nil || val.(string) == "") {
 			self.StCache.SetStField(hash, "", name, value, true)
 			return value, true
 		}
+		return "", false
 	}
 	return val.(string), false
 }
 
-func (self *Store) UnRegister(hash, name, value string) bool {
+func (self *Store) UnRegister(hash, name, oldVal string) bool {
 	l := self.NewLock("_CAR_" + hash + "-" + name)
 	l.Lock()
 	defer l.Unlock()
 	val, err := self.StCache.GetStField(hash, "", name, reflect.String)
-	if err == nil && val.(string) == value  {
-		self.StCache.DelStField(hash, "", name)
-		return true
+	if err == nil {
+		if oldVal == "" || val.(string) == oldVal {
+			self.StCache.DelStField(hash, "", name)
+			return true
+		}
 	}
 	return false
 }

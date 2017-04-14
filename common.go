@@ -20,8 +20,8 @@ var (
 type M map[string]interface{}
 
 type IRegistry interface {
-	CheckAndRegister(hash, name, value string) (string, bool)
-	UnRegister(hash, name, value string) bool
+	CheckAndRegister(hash, name, value string) (val string, isNew bool)
+	UnRegister(hash, name, oldVal string) bool
 	//Extend(hash, name string) bool
 }
 
