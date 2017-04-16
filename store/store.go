@@ -18,7 +18,7 @@ type Store struct {
 	Cache cache.Cache
 	StCache cache.StructCache
 	Db db.DB
-	LockMgr *lock.LockMgr
+	lockMgr *lock.LockMgr
 	Infos TableInfos
 }
 
@@ -47,16 +47,16 @@ func (self *Store) NewDB(name string) error {
 }
 
 func (self *Store) NewLockMgr(name string, expiry time.Duration, tries int, delay time.Duration) {
-	self.LockMgr = lock.New()
-	self.LockMgr.Init(self, name, expiry, tries, delay)
+	self.lockMgr = lock.New()
+	self.lockMgr.Init(self, name, expiry, tries, delay)
 }
 
 func (self *Store) NewLock(name string) lock.Lock {
-	return self.LockMgr.NewLock(name)
+	return self.lockMgr.NewLock(name)
 }
 
 func (self *Store) NewLockEx(name string, expiry time.Duration, tries int, delay time.Duration) lock.Lock {
-	return self.LockMgr.NewLock(name)
+	return self.lockMgr.NewLock(name)
 }
 
 func (self *Store) Start(dbCfg M, cacheCfg M) error {
