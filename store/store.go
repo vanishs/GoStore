@@ -15,16 +15,21 @@ import (
 
 
 type Store struct {
+	lockMgr *lock.LockMgr
 	Cache cache.Cache
 	StCache cache.StructCache
 	Db db.DB
-	lockMgr *lock.LockMgr
 	Infos TableInfos
+	ServiceAgent IServiceAgent
 }
 
 
 func New() *Store {
-	return &Store{Infos:make(map[reflect.Type]*TableInfo)}
+	s := &Store{
+		Infos:make(map[reflect.Type]*TableInfo),
+	}
+	s.ServiceAgent = &StoreServiceAgent{store:s}
+	return s
 }
 
 func (self *Store) NewCache(name string) error {

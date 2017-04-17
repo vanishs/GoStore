@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"log"
 	"fmt"
+	"runtime"
 )
 
 var (
@@ -23,6 +24,14 @@ type IRegistry interface {
 	CheckAndRegister(hash, name, value string) (val string, isNew bool)
 	UnRegister(hash, name, oldVal string) bool
 	//Extend(hash, name string) bool
+}
+
+type ServiceStateUpdate func() (loadCount int)
+
+type IServiceAgent interface {
+	Register(name, service, ip string, port int, stateUpdate ServiceStateUpdate)
+	UnRegister(name string)
+	Dns(service string) (ip string, port int)
 }
 
 type TableInfo struct {
@@ -107,6 +116,24 @@ func If(condition bool, trueVal, falseVal interface{}) interface{} {
 		return trueVal
 	}
 	return falseVal
+}
+
+func PrintRecover(e interface {}) interface {} {
+	if e != nil {
+		log.Printf("recover: %v\n", e)
+		for skip:=1; ; skip++ {
+			pc, file, line, ok := runtime.Caller(skip)
+			if !ok {
+				break
+			}
+			if file[len(file)-1] == 'c' {
+				continue
+			}
+			f := runtime.FuncForPC(pc)
+			fmt.Printf("    -->%s:%d %s()\n", file, line, f.Name())
+		}
+	}
+	return e
 }
 
 func init() {
