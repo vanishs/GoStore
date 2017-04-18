@@ -29,6 +29,7 @@ type IRegistry interface {
 type ServiceStateUpdate func() (loadCount int)
 
 type IServiceAgent interface {
+	Start()
 	Register(name, service, ip string, port int, stateUpdate ServiceStateUpdate)
 	UnRegister(name string)
 	Dns(service string) (ip string, port int)

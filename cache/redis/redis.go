@@ -28,20 +28,20 @@ func New() cache.Cache {
 	}
 }
 
-func _redis2value(t reflect.Kind, val interface{}, err error) (interface{}, error) {
+func _redis2value(t reflect.Kind, val interface{}) (interface{}, error) {
 	switch t {
 	case reflect.String:
-		return redis.String(val, err)
+		return redis.String(val, nil)
 	case reflect.Bool:
-		return redis.Bool(val, err)
+		return redis.Bool(val, nil)
 	case reflect.Int:
-		return redis.Int(val, err)
+		return redis.Int(val, nil)
 	case reflect.Int64:
-		return redis.Int64(val, err)
+		return redis.Int64(val, nil)
 	case reflect.Uint64:
-		return redis.Uint64(val, err)
+		return redis.Uint64(val, nil)
 	case reflect.Float64:
-		return redis.Float64(val, err)
+		return redis.Float64(val, nil)
 	}
 	return nil, errors.New(fmt.Sprintf("Kind(%s) no support", t))
 }
@@ -274,7 +274,7 @@ func (self *RedisCache) GetStField(table, key, field string, t reflect.Kind) (va
 	if err != nil {
 		return nil, err
 	}
-	return _redis2value(t, val, err)
+	return _redis2value(t, val)
 }
 
 // set struct field
@@ -297,15 +297,58 @@ func (self *RedisCache) GetStFieldNames(table, key string) []string {
 }
 
 // del struct field
-func (self *RedisCache) DelStField(table, key, field string) (bool, error) {
+//func (self *RedisCache) DelStField(table, key, field string) (bool, error) {
+//	fkey := self.fullKey(table, key)
+//	//exist, err := redis.Bool(self.do("HEXISTS", fkey, field))
+//	rs, err := redis.Int(self.do("HDEL", fkey, field))
+//	//log.Printf("****%s, %s", rs, err)
+//	if err != nil  {
+//		return false, err
+//	}
+//	return rs == 1, nil
+//}
+
+// get struct fields, error if no exist
+func (self *RedisCache) GetStFields(table, key string, fields []interface{}, types []reflect.Kind) (vals []interface{}, err error) {
+	if len(fields) != len(types) {
+		return nil, errors.New("GetStFields len(fields) != len(types)")
+	}
 	fkey := self.fullKey(table, key)
 	//exist, err := redis.Bool(self.do("HEXISTS", fkey, field))
-	rs, err := redis.Int(self.do("HDEL", fkey, field))
+	var ss []interface{}
+	ss = append(ss, fkey)
+	ss = append(ss, fields...)
+	rs, err := redis.Values(self.do("HMGET", ss...))
+	fmt.Println("~~~~~~~", ss, rs)
+	if err != nil {
+		return nil, err
+	}
+
+	for index, t := range types {
+		fmt.Println("***", index, t, rs[index])
+		v, _ := _redis2value(t, rs[index])
+		vals = append(vals, v)
+	}
+	return
+}
+
+// set struct fields
+func (self *RedisCache) SetStFields(table, key string, fields []interface{}, vals []interface{}, forced bool) (err error) {
+	return nil
+}
+
+func (self *RedisCache) DelStFields(table, key string, fields ...interface{}) (int, error) {
+	fkey := self.fullKey(table, key)
+	var ss []interface{}
+	ss = append(ss, fkey)
+	ss = append(ss, fields...)
+	//exist, err := redis.Bool(self.do("HEXISTS", fkey, field))
+	rs, err := redis.Int(self.do("HDEL", ss...))
 	//log.Printf("****%s, %s", rs, err)
 	if err != nil  {
-		return false, err
+		return 0, err
 	}
-	return rs == 1, nil
+	return rs, nil
 }
 
 func init() {

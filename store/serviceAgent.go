@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 	"log"
+	"encoding/json"
 )
 
 type _Service struct {
@@ -27,8 +28,11 @@ func NewStoreServiceAgent(store *Store) *StoreServiceAgent {
 		store: store,
 		names: make(map[string]*_Service),
 	}
-	go sss._loop()
 	return sss
+}
+
+func (self *StoreServiceAgent) Start() {
+	go self._loop()
 }
 
 func (self *StoreServiceAgent) Register(name, service, ip string, port int, stateUpdate ServiceStateUpdate) {
@@ -48,8 +52,8 @@ func (self *StoreServiceAgent) Register(name, service, ip string, port int, stat
 
 func (self *StoreServiceAgent) UnRegister(name string) {
 	self.Lock()
+	defer self.Unlock()
 	delete(self.names, name)
-	self.Unlock()
 }
 
 func (self *StoreServiceAgent) Dns(service string) (ip string, port int) {
@@ -66,7 +70,12 @@ func (self *StoreServiceAgent) _update(svc *_Service) {
 	if svc.updateFunc != nil {
 		svc.LoadCount = svc.updateFunc()
 	}
-
+	s, err := json.Marshal(svc)
+	if err != nil {
+		log.Printf("[StoreServiceAgent]_update error:%s", err)
+		return
+	}
+	self.store.
 }
 
 func (self *StoreServiceAgent) _loop() {

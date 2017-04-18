@@ -62,7 +62,7 @@ func TestStructRedisCache(t *testing.T) {
 		Level: 10,
 	}
 	table := "obj"
-	if err = bm.PutStruct(table, key, o1, 10); err != nil {
+	if err = bm.PutStruct(table, key, o1, 0); err != nil {
 		t.Error("PutStruct", err)
 	}
 	//time.Sleep(11*time.Second)
@@ -82,7 +82,6 @@ func TestStructRedisCache(t *testing.T) {
 	// ******SetStField
 	key = ""
 	dest := "ddd"
-	reflect.TypeOf(dest)
 	exist, err := bm.SetStField(table, key, "Name", dest, true)
 	if err != nil {
 		t.Error("SetStField", err)
@@ -100,16 +99,22 @@ func TestStructRedisCache(t *testing.T) {
 
 	// *****GetStFieldNames
 	keys := bm.GetStFieldNames(table, key)
-	log.Printf("GetStFieldNames:%s", keys)
+	log.Printf("GetStFieldNames:%s, %s", keys, val)
 	//if len(keys) != 3 {
 	//	t.Fatalf("GetStFieldNames error:%s", keys)
 	//}
 
-	ok, err = bm.DelStField(table, key, "Name")
+	vals, err := bm.GetStFields(table, key,
+		[]interface{}{"Name", "Sex", "Level"},
+		[]reflect.Kind{reflect.String, reflect.Int, reflect.Int},
+	)
+	log.Println("*******", vals)
+
+	c, err := bm.DelStFields(table, key, "Name", "Sex")
 	if err != nil {
 		t.Error("DelStField", err)
 	}
-	if !ok {
+	if c != 1 {
 		t.Fatal("DelStField no delete")
 	}
 }

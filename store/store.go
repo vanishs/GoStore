@@ -28,7 +28,7 @@ func New() *Store {
 	s := &Store{
 		Infos:make(map[reflect.Type]*TableInfo),
 	}
-	s.ServiceAgent = &StoreServiceAgent{store:s}
+	s.ServiceAgent = NewStoreServiceAgent(s)
 	return s
 }
 
@@ -75,6 +75,7 @@ func (self *Store) Start(dbCfg M, cacheCfg M) error {
 			return err
 		}
 	}
+	self.ServiceAgent.Start()
 	return nil
 }
 
