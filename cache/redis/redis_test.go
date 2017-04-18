@@ -80,7 +80,7 @@ func TestStructRedisCache(t *testing.T) {
 
 
 	// ******SetStField
-	key = ""
+	//key = ""
 	dest := "ddd"
 	exist, err := bm.SetStField(table, key, "Name", dest, true)
 	if err != nil {
@@ -104,8 +104,7 @@ func TestStructRedisCache(t *testing.T) {
 	//	t.Fatalf("GetStFieldNames error:%s", keys)
 	//}
 
-	vals, err := bm.GetStFields(table, key,
-		[]interface{}{"Name", "Sex", "Level"},
+	vals, err := bm.GetStFields(table, key, Params("Name", "Sex", "Level"),
 		[]reflect.Kind{reflect.String, reflect.Int, reflect.Int},
 	)
 	log.Println("*******", vals)
@@ -114,7 +113,10 @@ func TestStructRedisCache(t *testing.T) {
 	if err != nil {
 		t.Error("DelStField", err)
 	}
-	if c != 1 {
+	if c != 2 {
 		t.Fatal("DelStField no delete")
+	}
+	if err := bm.SetStFields(table, key, Params("Name", "Sex"), Params("newName", 2), false); err != nil {
+		t.Error("SetStFields", err)
 	}
 }

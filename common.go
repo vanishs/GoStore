@@ -137,6 +137,10 @@ func PrintRecover(e interface {}) interface {} {
 	return e
 }
 
+func Params(params ...interface{}) []interface{} {
+	return params
+}
+
 func init() {
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 }

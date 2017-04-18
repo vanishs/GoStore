@@ -11,6 +11,8 @@ import (
 )
 
 var (
+	NoExistError = errors.New("no exist error")
+	TimeoutError = errors.New("timeout")
 )
 
 // Cache is Redis cache adapter.
@@ -242,7 +244,7 @@ func (self *RedisCache) PutStruct(table, key string, val interface{}, timeout in
 			return err
 		}
 		if !rs {
-			return errors.New("PutStruct set timeout fail")
+			return TimeoutError
 		}
 	}
 	return nil
@@ -319,13 +321,13 @@ func (self *RedisCache) GetStFields(table, key string, fields []interface{}, typ
 	ss = append(ss, fkey)
 	ss = append(ss, fields...)
 	rs, err := redis.Values(self.do("HMGET", ss...))
-	fmt.Println("~~~~~~~", ss, rs)
+	//fmt.Println("~~~~~~~", ss, rs)
 	if err != nil {
 		return nil, err
 	}
 
 	for index, t := range types {
-		fmt.Println("***", index, t, rs[index])
+		//fmt.Println("***", index, t, rs[index])
 		v, _ := _redis2value(t, rs[index])
 		vals = append(vals, v)
 	}
@@ -334,7 +336,17 @@ func (self *RedisCache) GetStFields(table, key string, fields []interface{}, typ
 
 // set struct fields
 func (self *RedisCache) SetStFields(table, key string, fields []interface{}, vals []interface{}, forced bool) (err error) {
-	return nil
+	fkey := self.fullKey(table, key)
+	if !forced && !self.IsExist(fkey) {
+		return NoExistError
+	}
+	var ss []interface{}
+	ss = append(ss, fkey)
+	for index, f := range fields {
+		ss = append(ss, f, vals[index])
+	}
+	_, err = self.do("HMSET", ss...)
+	return err
 }
 
 func (self *RedisCache) DelStFields(table, key string, fields ...interface{}) (int, error) {
