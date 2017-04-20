@@ -25,8 +25,8 @@ type _Service struct {
 
 type StoreServiceAgent struct {
 	sync.Mutex
-	names map[string]*_Service
-	all map[string]*_Service
+	names map[string]*_Service	//{name:Service}
+	all map[string]*_Service	//{key:Service}
 	store *Store
 	allUpdateTime int64
 }
@@ -38,6 +38,14 @@ func NewStoreServiceAgent(store *Store) *StoreServiceAgent {
 		names: make(map[string]*_Service),
 	}
 	return sss
+}
+
+func _getKey(service, name string) string {
+	return service + "-" + name
+}
+
+func (self *_Service) getKey() string {
+	return _getKey(self.Service, self.Name)
 }
 
 func (self *StoreServiceAgent) Start() {
@@ -88,7 +96,7 @@ func (self *StoreServiceAgent) _getAll() {
 		var svc _Service
 		err = json.Unmarshal(v, &svc)
 		if err == nil && &svc != nil {
-			self.all[svc.Name] = &svc
+			self.all[svc.getKey()] = &svc
 			//log.Println("~~~", k, &svc)
 		}
 	}
@@ -110,10 +118,6 @@ func (self *StoreServiceAgent) _dnsService(svcName string) *_Service {
 	return svcs[rand.Intn(len(svcs))]
 }
 
-func (self *StoreServiceAgent) _getField(svc *_Service) string {
-	return svc.Service + "-" + svc.Name
-}
-
 func (self *StoreServiceAgent) _update(svc *_Service) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -129,7 +133,7 @@ func (self *StoreServiceAgent) _update(svc *_Service) {
 		log.Printf("[StoreServiceAgent]_update error:%s", err)
 		return
 	}
-	self.store.StCache.SetStField(ServiceTable, "", self._getField(svc), string(s), true)
+	self.store.StCache.SetStField(ServiceTable, "", svc.getKey(), string(s), true)
 }
 
 func (self *StoreServiceAgent) _loop() {
