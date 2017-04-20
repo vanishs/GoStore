@@ -14,19 +14,10 @@ const (
 	LoopTime = 10
 )
 
-type _Service struct {
-	Name string
-	Service string
-	Ip string
-	Port int
-	LoadCount int
-	updateFunc ServiceStateUpdate
-}
-
 type StoreServiceAgent struct {
 	sync.Mutex
-	names map[string]*_Service	//{name:Service}
-	all map[string]*_Service	//{key:Service}
+	names map[string]*Service	//{name:Service}
+	all map[string]*Service	//{key:Service}
 	store *Store
 	allUpdateTime int64
 }
@@ -34,18 +25,10 @@ type StoreServiceAgent struct {
 func NewStoreServiceAgent(store *Store) *StoreServiceAgent {
 	sss := &StoreServiceAgent{
 		store: store,
-		all: make(map[string]*_Service),
-		names: make(map[string]*_Service),
+		all: make(map[string]*Service),
+		names: make(map[string]*Service),
 	}
 	return sss
-}
-
-func _getKey(service, name string) string {
-	return service + "-" + name
-}
-
-func (self *_Service) getKey() string {
-	return _getKey(self.Service, self.Name)
 }
 
 func (self *StoreServiceAgent) Start() {
@@ -53,13 +36,13 @@ func (self *StoreServiceAgent) Start() {
 }
 
 func (self *StoreServiceAgent) Register(name, service, ip string, port int, stateUpdate ServiceStateUpdate) {
-	svc := &_Service{
+	svc := &Service{
 		Name: name,
 		Service: service,
 		Ip: ip,
 		Port: port,
 		LoadCount: 0,
-		updateFunc: stateUpdate,
+		UpdateFunc: stateUpdate,
 	}
 	self.Lock()
 	self.names[name] = svc
@@ -73,13 +56,19 @@ func (self *StoreServiceAgent) UnRegister(name string) {
 	delete(self.names, name)
 }
 
-func (self *StoreServiceAgent) Dns(service string) (ip string, port int) {
-	self._getAll()
+func (self *StoreServiceAgent) Dns(service string) *Service {
+	self.refresh()
 	svc := self._dnsService(service)
-	return svc.Ip, svc.Port
+	return svc
 }
 
-func (self *StoreServiceAgent) _getAll() {
+func (self *StoreServiceAgent) DnsByName(service, name string) *Service {
+	self.refresh()
+	svc, ok := self.all[GetServiceKey(service, name)]
+	return If(ok, svc, nil).(*Service)
+}
+
+func (self *StoreServiceAgent) refresh() {
 	ctime := time.Now().Unix()
 	if ctime - self.allUpdateTime < LoopTime {
 		return
@@ -93,17 +82,17 @@ func (self *StoreServiceAgent) _getAll() {
 		return
 	}
 	for _,v := range fields {
-		var svc _Service
+		var svc Service
 		err = json.Unmarshal(v, &svc)
 		if err == nil && &svc != nil {
-			self.all[svc.getKey()] = &svc
+			self.all[svc.GetKey()] = &svc
 			//log.Println("~~~", k, &svc)
 		}
 	}
 }
 
-func (self *StoreServiceAgent) _dnsServices(svcName string) []*_Service {
-	svcs := []*_Service{}
+func (self *StoreServiceAgent) _dnsServices(svcName string) []*Service {
+	svcs := []*Service{}
 	for _, svc := range self.all {
 		if svc.Service == svcName {
 			svcs = append(svcs, svc)
@@ -112,35 +101,35 @@ func (self *StoreServiceAgent) _dnsServices(svcName string) []*_Service {
 	return svcs
 }
 
-func (self *StoreServiceAgent) _dnsService(svcName string) *_Service {
+func (self *StoreServiceAgent) _dnsService(svcName string) *Service {
 	svcs := self._dnsServices(svcName)
 	rand.Seed(time.Now().UnixNano())
 	return svcs[rand.Intn(len(svcs))]
 }
 
-func (self *StoreServiceAgent) _update(svc *_Service) {
+func (self *StoreServiceAgent) _update(svc *Service) {
 	defer func() {
 		if r := recover(); r != nil {
 			PrintRecover(r)
 			log.Printf("[StoreServiceAgent]_update error:%s", r)
 		}
 	}()
-	if svc.updateFunc != nil {
-		svc.LoadCount = svc.updateFunc()
+	if svc.UpdateFunc != nil {
+		svc.LoadCount = svc.UpdateFunc()
 	}
 	s, err := json.Marshal(svc)
 	if err != nil {
 		log.Printf("[StoreServiceAgent]_update error:%s", err)
 		return
 	}
-	self.store.StCache.SetStField(ServiceTable, "", svc.getKey(), string(s), true)
+	self.store.StCache.SetStField(ServiceTable, "", svc.GetKey(), string(s), true)
 }
 
 func (self *StoreServiceAgent) _loop() {
 	for {
 		if len(self.names) > 0 {
 			self.Lock()
-			svcs := make([]*_Service, 0, len(self.names))
+			svcs := make([]*Service, 0, len(self.names))
 			for _,v := range self.names {
 				svcs = append(svcs, v)
 			}

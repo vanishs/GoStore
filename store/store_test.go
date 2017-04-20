@@ -98,8 +98,8 @@ func testServiceAgent(store *Store) {
 		})
 	}
 	for i := 0; i < 10; i++ {
-		ip, port := store.ServiceAgent.Dns(service)
-		log.Println("~~~", ip, port)
+		svc := store.ServiceAgent.Dns(service)
+		log.Println("~~~", svc)
 	}
 	store.ServiceAgent.UnRegister(name)
 }

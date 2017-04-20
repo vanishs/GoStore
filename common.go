@@ -28,11 +28,29 @@ type IRegistry interface {
 
 type ServiceStateUpdate func() (loadCount int)
 
+type Service struct {
+	Name string
+	Service string
+	Ip string
+	Port int
+	LoadCount int
+	UpdateFunc ServiceStateUpdate
+}
+
+func GetServiceKey(service, name string) string {
+	return service + "-" + name
+}
+
+func (self *Service) GetKey() string {
+	return GetServiceKey(self.Service, self.Name)
+}
+
+
 type IServiceAgent interface {
 	Start()
 	Register(name, service, ip string, port int, stateUpdate ServiceStateUpdate)
 	UnRegister(name string)
-	Dns(service string) (ip string, port int)
+	Dns(service string) *Service
 }
 
 type TableInfo struct {
