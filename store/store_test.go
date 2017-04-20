@@ -89,11 +89,10 @@ func testIRegistry(reg IRegistry) {
 func testServiceAgent(store *Store) {
 	name := "test"
 	service := "test"
-	host := "127.0.0.1"
-	port := 8001
+	addr := "127.0.0.1:8001"
 	c1 := 0
 	for i := 0; i < 5; i++ {
-		store.ServiceAgent.Register(name + strconv.Itoa(i), service, host, port+i, func() int {
+		store.ServiceAgent.Register(name + strconv.Itoa(i), service, addr, func() int {
 			c1 += 1; return c1
 		})
 	}

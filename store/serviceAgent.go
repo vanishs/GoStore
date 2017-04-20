@@ -35,12 +35,11 @@ func (self *StoreServiceAgent) Start() {
 	go self._loop()
 }
 
-func (self *StoreServiceAgent) Register(name, service, ip string, port int, stateUpdate ServiceStateUpdate) {
+func (self *StoreServiceAgent) Register(name, service, addr string, stateUpdate ServiceStateUpdate) {
 	svc := &Service{
 		Name: name,
 		Service: service,
-		Ip: ip,
-		Port: port,
+		Addr: addr,
 		LoadCount: 0,
 		UpdateFunc: stateUpdate,
 	}
