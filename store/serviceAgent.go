@@ -147,7 +147,7 @@ func (self *StoreServiceAgent) _update(svc *Service) {
 func (self *StoreServiceAgent) _loop() {
 	for {
 		if len(self.names) > 0 {
-			log.Println("[StoreServiceAgent]update services")
+			//log.Println("[StoreServiceAgent]update services")
 			self.Lock()
 			svcs := make([]*Service, 0, len(self.names))
 			for _,v := range self.names {
