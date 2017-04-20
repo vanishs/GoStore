@@ -33,6 +33,7 @@ type Service struct {
 	Service string
 	Addr string
 	LoadCount int
+	UpdateTime int64
 	UpdateFunc ServiceStateUpdate `json:"-"`
 }
 
