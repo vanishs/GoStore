@@ -178,7 +178,7 @@ func (self *Store) UnRegister(hash, name, oldVal string) bool {
 	val, err := self.StCache.GetStField(hash, "", name, reflect.String)
 	if err == nil {
 		if oldVal == "" || val.(string) == oldVal {
-			self.StCache.DelStField(hash, "", name)
+			self.StCache.DelStFields(hash, "", name)
 			return true
 		}
 	}

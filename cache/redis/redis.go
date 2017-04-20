@@ -298,6 +298,32 @@ func (self *RedisCache) GetStFieldNames(table, key string) []string {
 	return keys
 }
 
+// get all fields
+func (self *RedisCache) GetStAllFields(table, key string) (fields map[string][]byte, err error) {
+	fkey := self.fullKey(table, key)
+	rs, err := redis.Values(self.do("HGETALL", fkey))
+	//log.Printf("*****%s, %s", rs, err)
+	if err != nil {
+		return nil, err
+	}
+	if len(rs) == 0 {
+		return nil, nil
+	}
+	fields = make(map[string][]byte)
+	l := len(rs)
+	for i := 0; i < l; i = i+2 {
+		k := string(rs[i].([]byte))
+		v := rs[i+1].([]byte)
+		//log.Println("~~~~", k, v)
+		fields[k] = v
+	}
+	//err = redis.ScanStruct(rs, dest)
+	//if err != nil {
+	//	return false, err
+	//}
+	return
+}
+
 // del struct field
 //func (self *RedisCache) DelStField(table, key, field string) (bool, error) {
 //	fkey := self.fullKey(table, key)

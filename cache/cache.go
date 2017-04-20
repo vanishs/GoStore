@@ -43,6 +43,8 @@ type StructCache interface {
 	//DelStField(table, key, field string) (bool, error)
 	// get all field's names
 	GetStFieldNames(table, key string) []string
+	// get all fields
+	GetStAllFields(table, key string) (fields map[string][]byte, err error)
 	// get struct fields, error if no exist
 	GetStFields(table, key string, fields []interface{}, types []reflect.Kind) (vals []interface{}, err error)
 	// set struct fields

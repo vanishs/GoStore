@@ -6,6 +6,7 @@ import (
 	_ "github.com/seewindcn/GoStore/lock/redis"
 	"reflect"
 	"log"
+	"strconv"
 )
 
 type Obj1 struct {
@@ -63,6 +64,8 @@ func TestStore(t *testing.T) {
 	// lockMgr
 	store.NewLockMgr("redis", 0, 0, 0)
 	testIRegistry(store)
+
+	testServiceAgent(store)
 }
 
 // test IRegistry
@@ -82,3 +85,22 @@ func testIRegistry(reg IRegistry) {
 		log.Println("CheckAndRegister unregister error")
 	}
 }
+
+func testServiceAgent(store *Store) {
+	name := "test"
+	service := "test"
+	host := "127.0.0.1"
+	port := 8001
+	c1 := 0
+	for i := 0; i < 5; i++ {
+		store.ServiceAgent.Register(name + strconv.Itoa(i), service, host, port+i, func() int {
+			c1 += 1; return c1
+		})
+	}
+	for i := 0; i < 10; i++ {
+		ip, port := store.ServiceAgent.Dns(service)
+		log.Println("~~~", ip, port)
+	}
+	store.ServiceAgent.UnRegister(name)
+}
+
