@@ -52,7 +52,7 @@ func TestStore(t *testing.T) {
 		t.Fatalf("store load error:%s", o2)
 	}
 
-	objs := []Obj1{}
+	var objs  []Obj1
 	store.Loads(M{"sex":2}, &objs)
 	log.Println("*****", len(objs), objs[0])
 
