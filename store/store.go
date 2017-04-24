@@ -138,15 +138,16 @@ func (self *Store) Load(obj interface{}, cache bool) error {
 	return self.Db.LoadByInfo(info, obj)
 }
 
-func (self *Store) Loads(query M, obj interface{}) error {
-	t := reflect.TypeOf(obj)
+//Loads objs: Ptr for []TableObject
+func (self *Store) Loads(query M, objs interface{}) error {
+	t := reflect.TypeOf(objs)
 	v := t.Elem().Elem()
 	if !(t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Slice && v.Kind() == reflect.Struct) {
 		panic("store loads objs much be []struct pointer")
 	}
 
 	info := self.Infos.GetTableInfo(v)
-	self.Db.Loads(info.Name, query, obj)
+	self.Db.Loads(info.Name, query, objs)
 	return nil
 }
 
