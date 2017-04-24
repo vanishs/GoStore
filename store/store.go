@@ -11,6 +11,7 @@ import (
 	"log"
 	"github.com/seewindcn/GoStore/lock"
 	"time"
+	"errors"
 )
 
 
@@ -143,7 +144,7 @@ func (self *Store) Loads(query M, objs interface{}) error {
 	t := reflect.TypeOf(objs)
 	v := t.Elem().Elem()
 	if !(t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Slice && v.Kind() == reflect.Struct) {
-		panic("store loads objs much be []struct pointer")
+		return errors.New("store loads objs much be []struct pointer")
 	}
 
 	info := self.Infos.GetTableInfo(v)
