@@ -81,7 +81,7 @@ func (self *Store) Start(dbCfg M, cacheCfg M) error {
 }
 
 // register table's struct
-func (self *Store) RegTable(table string, st reflect.Type, isCache bool) {
+func (self *Store) RegTable(table string, st reflect.Type, isCache bool, index *DbIndex) {
 	if st == nil {
 		panic("store: RegTable st is nil")
 	}
@@ -92,6 +92,7 @@ func (self *Store) RegTable(table string, st reflect.Type, isCache bool) {
 	info.Name = table
 	info.IsCache = isCache
 	info.SType = st
+	info.Index = index
 	self.Infos[st] = info
 	self.Db.RegTable(info)
 }

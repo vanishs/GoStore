@@ -77,7 +77,25 @@ func (self *MongoDB) Start(infos TableInfos, config M) error {
 	if err != nil {
 		return err
 	}
+	self._ensureIndexs()
 	return nil
+}
+
+func (self *MongoDB) _ensureIndexs() {
+	s, db := self._getSessionAndDb()
+	defer s.Close()
+	for _, info := range self.Infos {
+		if info.Index == nil {
+			continue
+		}
+		index := mgo.Index{
+			Key: info.Index.Key,
+			Unique: info.Index.Unique,
+			Name: info.Index.Name,
+		}
+		err := db.C(info.Name).EnsureIndex(index)
+		log.Printf("_ensureIndexs:%s, %s, error:%s", info.Name, index.Key, err)
+	}
 }
 
 func (self *MongoDB) Stop() error {

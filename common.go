@@ -59,7 +59,15 @@ type TableInfo struct {
 	IsCache bool
 	SType reflect.Type
 	Params M
+	Index *DbIndex
 }
+
+type DbIndex struct {
+	Key	[]string // Index key fields; prefix name with dash (-) for descending order
+	Unique	bool     // Prevent two documents from having the same index key
+	Name	string
+}
+
 
 func NewTableInfo() *TableInfo {
 	return &TableInfo{Params:make(M)}

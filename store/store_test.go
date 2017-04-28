@@ -31,8 +31,10 @@ func TestStore(t *testing.T) {
 	if err := store.NewCache("redis"); err != nil {
 		t.Error("NewCache error:", err)
 	}
-	store.RegTable("Obj1", reflect.TypeOf((*Obj1)(nil)).Elem(), true)
-	store.RegTable("Obj2", reflect.TypeOf((*Obj2)(nil)).Elem(), true)
+	store.RegTable("Obj1", reflect.TypeOf((*Obj1)(nil)).Elem(), true,
+		&DbIndex{Key:[]string{"name"}, Unique:true},
+	)
+	store.RegTable("Obj2", reflect.TypeOf((*Obj2)(nil)).Elem(), true, nil)
 	//store.RegTable("Obj1", reflect.TypeOf((*Obj1)(nil)), true)
 	if err := store.Start(MongodbTestConfig, RedisTestConfig); err != nil {
 		t.Error("store Start error:", err)
