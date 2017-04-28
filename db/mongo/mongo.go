@@ -94,7 +94,9 @@ func (self *MongoDB) _ensureIndexs() {
 			Name: info.Index.Name,
 		}
 		err := db.C(info.Name).EnsureIndex(index)
-		log.Printf("_ensureIndexs:%s, %s, error:%s", info.Name, index.Key, err)
+		if err != nil {
+			log.Printf("_ensureIndexs:%s, %s, error:%s", info.Name, index.Key, err)
+		}
 	}
 }
 
