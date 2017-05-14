@@ -183,6 +183,13 @@ func (self *MongoDB) Loads(table string, query M, obj interface{}) error {
 	return _db.C(table).Find(query).All(obj)
 }
 
+func (self *MongoDB) RandomLoad(table string, obj interface{}) error {
+	s, _db := self._getSessionAndDb()
+	defer s.Close()
+	pipe := _db.C(table).Pipe([]M{{"$sample": M{"size":1}}})
+	return pipe.One(obj)
+}
+
 func (self *MongoDB) _load(db *mgo.Database, table string, key, obj interface{}) error {
 	return db.C(table).Find(M{ID_FIELD:key}).One(obj)
 }

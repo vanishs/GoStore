@@ -5,6 +5,7 @@ import (
 	. "github.com/seewindcn/GoStore"
 	"github.com/seewindcn/GoStore/db"
 	"log"
+	"strconv"
 )
 
 type Obj1 struct {
@@ -27,6 +28,29 @@ func preMongoDB(t *testing.T) db.DB {
 		return nil
 	}
 	return m
+}
+
+func _saveSomeObj(m db.DB, table string) {
+	for i := 0; i < 10; i++ {
+		o1 := &Obj1{Id:i, Name:"test_" + strconv.Itoa(i), Sex:i}
+		m.Save(table, nil, o1)
+		//println("save", i)
+	}
+}
+
+func TestMongoDB_Load(t *testing.T) {
+	var err error
+	m := preMongoDB(t)
+	defer m.Stop()
+	_saveSomeObj(m, "load")
+	o1 := &Obj1{}
+	for i := 0; i < 6; i++ {
+		err = m.RandomLoad("load", o1)
+		if err != nil {
+			t.Error("MongoDB.RandomLoad err:", err)
+		}
+		println(">>>RandomLoad:", o1.Name)
+	}
 }
 
 func TestMongoDB_Save(t *testing.T) {

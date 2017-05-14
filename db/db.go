@@ -17,6 +17,7 @@ type DB interface {
 	Load(table, key string, obj interface{}) error
 	LoadByInfo(info *TableInfo, obj interface{}) error
 	Loads(table string, query M, obj interface{}) error
+	RandomLoad(table string, obj interface{}) error
 	Delete(table string, id interface{}) error
 	Deletes(table string, query M) (count int, err error)
 	//Update(table, key string, fields M) error
