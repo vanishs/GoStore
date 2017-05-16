@@ -80,6 +80,12 @@ func (self *StoreServiceAgent) DnsByName(service, name string) *Service {
 	return If(ok, svc, nil).(*Service)
 }
 
+func (self *StoreServiceAgent) DnsAll(service string) []*Service {
+	self.refresh()
+	svcs := self._dnsServices(service)
+	return svcs
+}
+
 func (self *StoreServiceAgent) refresh() {
 	ctime := time.Now().Unix()
 	if ctime-self.allUpdateTime < LoopTime {

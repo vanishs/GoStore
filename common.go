@@ -51,6 +51,8 @@ type IServiceAgent interface {
 	Register(name, service, addr string, stateUpdate ServiceStateUpdate)
 	UnRegister(name string)
 	Dns(service string) *Service
+	DnsByName(service, name string) *Service
+	DnsAll(service string) []*Service
 }
 
 type TableInfo struct {
