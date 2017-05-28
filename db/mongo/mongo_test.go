@@ -20,6 +20,7 @@ type Obj2 struct {
 	Sex int
 	Matchs []string
 	Dict1 map[string]string  // only support string key
+	Dict2 map[string]interface{}
 }
 
 func preMongoDB(t *testing.T) db.DB {
@@ -56,7 +57,7 @@ func TestMongoDB_Load(t *testing.T) {
 
 	o2 := &Obj2{Id:"obj2"}
 	m.Load("test1", "Id", o2)
-	log.Printf("***o2:%s, matchs:%s, Dict1:%s", o2, o2.Matchs, o2.Dict1)
+	log.Printf("***o2:%s, matchs:%s, Dict1:%s, Dict2:%s", o2, o2.Matchs, o2.Dict1, o2.Dict2)
 }
 
 func TestMongoDB_Save(t *testing.T) {
@@ -67,6 +68,7 @@ func TestMongoDB_Save(t *testing.T) {
 	o2 := &Obj2{Id:"obj2", Name:"idtest2", Sex:2}
 	o2.Matchs = []string{"a", "b", "c"}
 	o2.Dict1 = map[string]string{"1":"a", "2":"b", "3":"d"}
+	o2.Dict2 = map[string]interface{}{"1":[]string{"a", "b", "c"}, "2":"b", "3":1}
 	err = m.Save("test1", o1.Id, o1)
 	err = m.Save("test1", o2.Id, o2)
 	o1.Id = 1
