@@ -18,6 +18,8 @@ type Obj2 struct {
 	Id string `json:"id" bson:"_id,omitempty"`
 	Name string
 	Sex int
+	Matchs []string
+	Dict1 map[string]string  // only support string key
 }
 
 func preMongoDB(t *testing.T) db.DB {
@@ -51,6 +53,10 @@ func TestMongoDB_Load(t *testing.T) {
 		}
 		println(">>>RandomLoad:", o1.Name)
 	}
+
+	o2 := &Obj2{Id:"obj2"}
+	m.Load("test1", "Id", o2)
+	log.Printf("***o2:%s, matchs:%s, Dict1:%s", o2, o2.Matchs, o2.Dict1)
 }
 
 func TestMongoDB_Save(t *testing.T) {
@@ -58,9 +64,11 @@ func TestMongoDB_Save(t *testing.T) {
 	m := preMongoDB(t)
 	defer m.Stop()
 	o1 := &Obj1{Name:"idtest", Sex:1}
-	o2 := &Obj2{Name:"idtest2", Sex:1}
-	err = m.Save("test1", nil, o1)
-	err = m.Save("test1", nil, o2)
+	o2 := &Obj2{Id:"obj2", Name:"idtest2", Sex:2}
+	o2.Matchs = []string{"a", "b", "c"}
+	o2.Dict1 = map[string]string{"1":"a", "2":"b", "3":"d"}
+	err = m.Save("test1", o1.Id, o1)
+	err = m.Save("test1", o2.Id, o2)
 	o1.Id = 1
 	err = m.Save("test1", o1.Id, o1)
 	if err != nil {
@@ -73,7 +81,9 @@ func TestMongoDB_Delete(t *testing.T) {
 	m := preMongoDB(t)
 	defer m.Stop()
 	m.Delete("test1", 1)
-	c, err := m.Deletes("test1", M{"name":"idtest2"})
+	o2 := &Obj2{Name:"idtest2del", Sex:1}
+	m.Save("test1", nil, o2)
+	c, err := m.Deletes("test1", M{"name":"idtest2del"})
 	if err != nil {
 		t.Error("Deletes error", err)
 	}
