@@ -68,7 +68,7 @@ func TestMongoDB_Save(t *testing.T) {
 	o2 := &Obj2{Id:"obj2", Name:"idtest2", Sex:2}
 	o2.Matchs = []string{"a", "b", "c"}
 	o2.Dict1 = map[string]string{"1":"a", "2":"b", "3":"d"}
-	o2.Dict2 = map[string]interface{}{"1":[]string{"a", "b", "c"}, "2":"b", "3":1}
+	o2.Dict2 = map[string]interface{}{"1":[]string{"a", "b", "c"}, "2":"b", "3":1, "4":o2.Dict1}
 	err = m.Save("test1", o1.Id, o1)
 	err = m.Save("test1", o2.Id, o2)
 	o1.Id = 1
