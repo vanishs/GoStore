@@ -44,6 +44,7 @@ func TestRedisCache(t *testing.T) {
 	if !bm.IsExist("redis") {
 		t.Error("check err")
 	}
+	testSet(bm, t)
 }
 
 type Obj struct {
@@ -119,4 +120,15 @@ func TestStructRedisCache(t *testing.T) {
 	if err := bm.SetStFields(table, key, Params("Name", "Sex"), Params("newName", 2), false); err != nil {
 		t.Error("SetStFields", err)
 	}
+}
+
+func testSet(bm cache.Cache, t *testing.T) {
+	key := "set1"
+	si := bm.(cache.SetCache)
+	si.SetAdd(key, 1,2,3, 4, "a", "b", "c", "ddd")
+	si.SetRemove(key, "ddd", 4)
+	s1, err := si.SetRandom(key)
+	log.Println("tSet:", s1, err)
+	s1, err = si.SetRandomPop(key)
+	log.Println("tSet:", s1, err)
 }

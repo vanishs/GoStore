@@ -389,6 +389,53 @@ func (self *RedisCache) DelStFields(table, key string, fields ...interface{}) (i
 	return rs, nil
 }
 
+func (self *RedisCache) SetAdd(key string, members ...interface{}) (int, error) {
+	var ss []interface{}
+	ss = append(ss, key)
+	ss = append(ss, members...)
+	rs, err := redis.Int(self.do("SADD", ss...))
+	if err != nil {
+		return 0, err
+	}
+	return rs, nil
+}
+
+func (self *RedisCache) SetRemove(key string, members ...interface{}) (int, error) {
+	var ss []interface{}
+	ss = append(ss, key)
+	ss = append(ss, members...)
+	rs, err := redis.Int(self.do("SREM", ss...))
+	if err != nil {
+		return 0, err
+	}
+	return rs, nil
+}
+
+func (self *RedisCache) SetLen(key string) (int, error) {
+	rs, err := redis.Int(self.do("SCARD", key))
+	if err != nil {
+		return 0, err
+	}
+	return rs, nil
+}
+
+func (self *RedisCache) SetRandom(key string) (string, error) {
+	rs, err := redis.String(self.do("SRANDMEMBER", key))
+	if err != nil {
+		return "", err
+	}
+	return rs, nil
+}
+
+func (self *RedisCache) SetRandomPop(key string) (string, error) {
+	rs, err := redis.String(self.do("SPOP", key))
+	if err != nil {
+		return "", err
+	}
+	return rs, nil
+
+}
+
 func init() {
 	cache.Register("redis", New)
 }

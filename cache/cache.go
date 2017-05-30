@@ -52,6 +52,14 @@ type StructCache interface {
 	DelStFields(table, key string, fields ...interface{}) (int, error)
 }
 
+type SetCache interface {
+	SetAdd(key string, members ...interface{}) (int, error)
+	SetRemove(key string, members ...interface{}) (int, error)
+	SetLen(key string) (int, error)
+	SetRandom(key string) (string, error)
+	SetRandomPop(key string) (string, error)
+}
+
 // Instance is a function create a new Cache Instance
 type Instance func() Cache
 
