@@ -127,8 +127,8 @@ func testSet(bm cache.Cache, t *testing.T) {
 	si := bm.(cache.SetCache)
 	si.SetAdd(key, 1,2,3, 4, "a", "b", "c", "ddd")
 	si.SetRemove(key, "ddd", 4)
-	s1, err := si.SetRandom(key)
-	log.Println("tSet:", s1, err)
-	s1, err = si.SetRandomPop(key)
+	keys, err := si.SetRandom(key, 2)
+	log.Println("tSet:", keys, err)
+	s1, err := si.SetRandomPop(key)
 	log.Println("tSet:", s1, err)
 }

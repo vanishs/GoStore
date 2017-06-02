@@ -419,10 +419,10 @@ func (self *RedisCache) SetLen(key string) (int, error) {
 	return rs, nil
 }
 
-func (self *RedisCache) SetRandom(key string) (string, error) {
-	rs, err := redis.String(self.do("SRANDMEMBER", key))
+func (self *RedisCache) SetRandom(key string, count int) ([]string, error) {
+	rs, err := redis.Strings(self.do("SRANDMEMBER", key, count))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	return rs, nil
 }

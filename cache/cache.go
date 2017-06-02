@@ -56,7 +56,7 @@ type SetCache interface {
 	SetAdd(key string, members ...interface{}) (int, error)
 	SetRemove(key string, members ...interface{}) (int, error)
 	SetLen(key string) (int, error)
-	SetRandom(key string) (string, error)
+	SetRandom(key string, count int) ([]string, error)
 	SetRandomPop(key string) (string, error)
 }
 
