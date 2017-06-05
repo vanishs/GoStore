@@ -18,7 +18,7 @@ type StoreServiceAgent struct {
 	sync.Mutex
 	names         map[string]*Service //{serviceName:Service}
 	all           map[string]*Service //{key:Service}
-	addrs map[string]string //{inAddr:outAddr}
+	addrs         map[string]string   //{inAddr:outAddr}
 	store         *Store
 	allUpdateTime int64
 }
@@ -95,12 +95,15 @@ func (self *StoreServiceAgent) refresh() {
 		return
 	}
 	self.allUpdateTime = ctime
-	//clear map
-	for k := range self.all {
-		delete(self.all, k)
-	}
-	self.addrs = make(map[string]string)
 
+	////clear map
+	//for k := range self.all {
+	//	delete(self.all, k)
+	//}
+	//self.addrs = make(map[string]string)
+
+	all := make(map[string]*Service)
+	addrs := make(map[string]string)
 	fields, err := self.store.StCache.GetStAllFields(ServiceTable, "")
 	if err != nil {
 		log.Println("[!]StoreServiceAgent.refresh error:", err)
@@ -113,8 +116,8 @@ func (self *StoreServiceAgent) refresh() {
 		if err == nil && &svc != nil {
 			//log.Println("~~~", k, &svc)
 			if ctime-svc.UpdateTime < LoopTime*3 {
-				self.all[svc.GetKey()] = &svc
-				self.addrs[svc.InAddr] = svc.OutAddr
+				all[svc.GetKey()] = &svc
+				addrs[svc.InAddr] = svc.OutAddr
 			} else {
 				go func(svc *Service) {
 					self._delete(svc)
@@ -122,6 +125,10 @@ func (self *StoreServiceAgent) refresh() {
 			}
 		}
 	}
+	self.Lock()
+	self.all = all
+	self.addrs = addrs
+	self.Unlock()
 	log.Println("StoreServiceAgent.refresh", len(self.all), len(fields))
 }
 
