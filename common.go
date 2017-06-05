@@ -31,7 +31,8 @@ type ServiceStateUpdate func() (loadCount int)
 type Service struct {
 	Name string
 	Service string
-	Addr string
+	InAddr string
+	OutAddr string
 	LoadCount int
 	UpdateTime int64
 	UpdateFunc ServiceStateUpdate `json:"-"`
@@ -48,11 +49,12 @@ func (self *Service) GetKey() string {
 
 type IServiceAgent interface {
 	Start()
-	Register(name, service, addr string, stateUpdate ServiceStateUpdate)
+	Register(svc *Service)
 	UnRegister(name string)
 	Dns(service string) *Service
 	DnsByName(service, name string) *Service
 	DnsAll(service string) []*Service
+	InAddr2OutAddr(inAddr string) string
 }
 
 type TableInfo struct {

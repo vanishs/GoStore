@@ -18,6 +18,7 @@ type StoreServiceAgent struct {
 	sync.Mutex
 	names         map[string]*Service //{serviceName:Service}
 	all           map[string]*Service //{key:Service}
+	addrs map[string]string //{inAddr:outAddr}
 	store         *Store
 	allUpdateTime int64
 }
@@ -36,17 +37,11 @@ func (self *StoreServiceAgent) Start() {
 	go self._loop()
 }
 
-func (self *StoreServiceAgent) Register(name, service, addr string, stateUpdate ServiceStateUpdate) {
-	log.Println("[!]StoreServiceAgent.Register:", name, service)
-	svc := &Service{
-		Name:       name,
-		Service:    service,
-		Addr:       addr,
-		LoadCount:  0,
-		UpdateFunc: stateUpdate,
-	}
+func (self *StoreServiceAgent) Register(svc *Service) {
+	log.Println("[!]StoreServiceAgent.Register:", svc.Name, svc.Service)
+	svc.LoadCount = 0
 	self.Lock()
-	self.names[service] = svc
+	self.names[svc.Service] = svc
 	self.Unlock()
 	self._update(svc)
 }
@@ -86,15 +81,26 @@ func (self *StoreServiceAgent) DnsAll(service string) []*Service {
 	return svcs
 }
 
+func (self *StoreServiceAgent) InAddr2OutAddr(inAddr string) string {
+	self.refresh()
+	if outAddr, ok := self.addrs[inAddr]; ok {
+		return outAddr
+	}
+	return ""
+}
+
 func (self *StoreServiceAgent) refresh() {
 	ctime := time.Now().Unix()
 	if ctime-self.allUpdateTime < LoopTime {
 		return
 	}
 	self.allUpdateTime = ctime
+	//clear map
 	for k := range self.all {
 		delete(self.all, k)
 	}
+	self.addrs = make(map[string]string)
+
 	fields, err := self.store.StCache.GetStAllFields(ServiceTable, "")
 	if err != nil {
 		log.Println("[!]StoreServiceAgent.refresh error:", err)
@@ -108,6 +114,7 @@ func (self *StoreServiceAgent) refresh() {
 			//log.Println("~~~", k, &svc)
 			if ctime-svc.UpdateTime < LoopTime*3 {
 				self.all[svc.GetKey()] = &svc
+				self.addrs[svc.InAddr] = svc.OutAddr
 			} else {
 				go func(svc *Service) {
 					self._delete(svc)
