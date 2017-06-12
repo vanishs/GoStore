@@ -177,10 +177,22 @@ func (self *MongoDB) LoadByInfo(info *TableInfo, obj interface{}) error {
 	return self._load(_db, info.Name, info.GetKey(obj), obj)
 }
 
-func (self *MongoDB) Loads(table string, query M, obj interface{}) error {
+func (self *MongoDB) Loads(table string, query M, obj interface{}, options *db.LoadOption) error {
 	s, _db := self._getSessionAndDb()
 	defer s.Close()
-	return _db.C(table).Find(query).All(obj)
+	q := _db.C(table).Find(query)
+	if options != nil {
+		if options.Skip > 0 {
+			q.Skip(options.Skip)
+		}
+		if options.Limit > 0 {
+			q.Limit(options.Limit)
+		}
+		if options.SortFields != nil && len(options.SortFields) > 0 {
+			q.Sort(options.SortFields...)
+		}
+	}
+	return q.All(obj)
 }
 
 func (self *MongoDB) RandomLoad(table string, obj interface{}) error {
@@ -207,6 +219,22 @@ func (self *MongoDB) Deletes(table string, query M) (count int, err error) {
 		return 0, err
 	} else {
 		return info.Removed, err
+	}
+}
+
+func (self *MongoDB) FindAndModify(table string, query M, options db.ChangeOption) (count int, doc interface{}, err error){
+	s, _db := self._getSessionAndDb()
+	defer s.Close()
+	result := M{}
+	change := mgo.Change{ Update: options.Update,
+		Remove:options.Remove,
+		Upsert: options.Upsert,
+		ReturnNew: options.ReturnNew,
+	}
+	if info, err := _db.C(table).Find(query).Apply(change, &result); err != nil {
+		return 0, nil, err
+	} else {
+		return info.Updated, result, err
 	}
 }
 

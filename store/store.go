@@ -141,7 +141,7 @@ func (self *Store) Load(obj interface{}, cache bool) error {
 }
 
 //Loads objs: Ptr for []TableObject
-func (self *Store) Loads(query M, objs interface{}) error {
+func (self *Store) Loads(query M, objs interface{}, options *db.LoadOption) error {
 	t := reflect.TypeOf(objs)
 	v := t.Elem().Elem()
 	if !(t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Slice && v.Kind() == reflect.Struct) {
@@ -149,7 +149,7 @@ func (self *Store) Loads(query M, objs interface{}) error {
 	}
 
 	info := self.Infos.GetTableInfo(v)
-	self.Db.Loads(info.Name, query, objs)
+	self.Db.Loads(info.Name, query, objs, options)
 	return nil
 }
 
