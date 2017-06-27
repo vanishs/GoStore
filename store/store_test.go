@@ -6,6 +6,7 @@ import (
 	_ "github.com/seewindcn/GoStore/lock/redis"
 	"reflect"
 	"log"
+	"time"
 	"strconv"
 )
 
@@ -55,7 +56,7 @@ func TestStore(t *testing.T) {
 	}
 
 	var objs  []Obj1
-	store.Loads(M{"sex":2}, &objs)
+	store.Loads(M{"sex":2}, &objs, nil)
 	log.Println("*****", len(objs), objs[0])
 
 	o3 := &Obj1{Id:o1.Id, Name:"cacheName"}
@@ -64,10 +65,11 @@ func TestStore(t *testing.T) {
 	}
 
 	// lockMgr
-	store.NewLockMgr("redis", 0, 0, 0)
+	store.NewLockMgr("redis", 4 * time.Second, 0, 0)
 	testIRegistry(store)
 
 	testServiceAgent(store)
+	testServiceSingleton(store)
 }
 
 // test IRegistry
@@ -94,9 +96,17 @@ func testServiceAgent(store *Store) {
 	addr := "127.0.0.1:8001"
 	c1 := 0
 	for i := 0; i < 5; i++ {
-		store.ServiceAgent.Register(name + strconv.Itoa(i), service, addr, func() int {
-			c1 += 1; return c1
-		})
+		svc := &Service{
+			Name: name + strconv.Itoa(i),
+			Service: service,
+			InAddr: addr,
+			OutAddr: addr,
+			UpdateFunc: func() int {
+				c1 += 1
+				return c1
+			},
+		}
+		store.ServiceAgent.Register(svc)
 	}
 	for i := 0; i < 10; i++ {
 		svc := store.ServiceAgent.Dns(service)
@@ -105,3 +115,28 @@ func testServiceAgent(store *Store) {
 	store.ServiceAgent.UnRegister(name)
 }
 
+func testServiceSingleton(store *Store) {
+	name := "singletonTest"
+	f1 := func(my string) {
+		ss := NewServiceSingleton(store, name, 8)
+		ss.Start()
+		for i := 0; i < 10 ; i++ {
+			if ss.CheckSingleton() {
+				log.Printf("[%s]%s.", my, i)
+				if i > 5 {
+					ss.Stop()
+				}
+			} else {
+				log.Printf("[%s]CheckSingleton error", my)
+				break
+			}
+			time.Sleep(time.Second * time.Duration(i+1))
+		}
+		ss.Stop()
+		log.Printf("[%s]end", my)
+	}
+	for i := 0; i < 10; i++ {
+		go f1("test_"+ strconv.Itoa(i))
+	}
+	time.Sleep(time.Second * 60)
+}

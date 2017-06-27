@@ -62,7 +62,7 @@ func (self *Store) NewLock(name string) lock.Lock {
 }
 
 func (self *Store) NewLockEx(name string, expiry time.Duration, tries int, delay time.Duration) lock.Lock {
-	return self.lockMgr.NewLock(name)
+	return self.lockMgr.NewLockEx(name, expiry, tries, delay)
 }
 
 func (self *Store) Start(dbCfg M, cacheCfg M) error {
