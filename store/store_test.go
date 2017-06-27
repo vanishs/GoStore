@@ -118,7 +118,7 @@ func testServiceAgent(store *Store) {
 func testServiceSingleton(store *Store) {
 	name := "singletonTest"
 	f1 := func(my string) {
-		ss := NewServiceSingleton(store, name, 8)
+		ss := NewServiceSingleton(store, name, 4*time.Second)
 		ss.Start()
 		for i := 0; i < 10 ; i++ {
 			if ss.CheckSingleton() {

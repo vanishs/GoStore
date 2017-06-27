@@ -17,6 +17,7 @@ func NewServiceSingleton(store *Store, name string, expiry time.Duration) *Servi
 	sss := &ServiceSingleton{
 		name: name,
 		expiry: expiry,
+		//lk: store.NewLock(name),
 		lk: store.NewLockEx(name, expiry, 1, 0),
 	}
 	return sss
