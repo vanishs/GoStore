@@ -4,27 +4,35 @@ package store
 import (
 	"github.com/seewindcn/GoStore/lock"
 	"time"
+	"sync"
 )
 
 type ServiceSingleton struct {
+	sync.Mutex
 	name string
 	expiry time.Duration
 	lk lock.Lock
 	locked bool
+	svcFunc SvcFunc
 }
 
-func NewServiceSingleton(store *Store, name string, expiry time.Duration) *ServiceSingleton {
+type SvcFunc func(*bool)
+
+func NewServiceSingleton(store *Store, name string, expiry time.Duration, svcFunc SvcFunc) *ServiceSingleton {
 	sss := &ServiceSingleton{
 		name: name,
 		expiry: expiry,
 		//lk: store.NewLock(name),
 		lk: store.NewLockEx(name, expiry, 1, 0),
+		svcFunc: svcFunc,
 	}
 	return sss
 }
 
 
 func (self *ServiceSingleton) Start() bool {
+	self.Lock()
+	defer self.Unlock()
 	if self.locked {
 		return true
 	}
@@ -33,25 +41,33 @@ func (self *ServiceSingleton) Start() bool {
 		return false
 	}
 	self.locked = true
+	go self._loop()
+	return true
+}
+
+func (self *ServiceSingleton) _loop() {
+	looped := true
+	defer func() {
+		looped = false
+		self.Stop()
+		self.Lock()
+		self.locked = false
+		self.Unlock()
+	}()
 	go func() {
 		for {
-			time.Sleep(self.expiry / 2)
-			if !self.locked || !self.lk.Extend() {
+			time.Sleep(self.expiry/2)
+			if !looped || !self.lk.Extend() {
 				break
 			}
 		}
-		self.locked = false
+		looped = false
 	}()
-	return true
+	self.svcFunc(&looped)
 }
 
 func (self *ServiceSingleton) Stop() {
 	self.lk.Unlock()
-	self.locked = false
-}
-
-func (self *ServiceSingleton) CheckSingleton() bool {
-	return self.locked
 }
 
 

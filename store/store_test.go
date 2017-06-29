@@ -117,26 +117,32 @@ func testServiceAgent(store *Store) {
 
 func testServiceSingleton(store *Store) {
 	name := "singletonTest"
+
 	f1 := func(my string) {
-		ss := NewServiceSingleton(store, name, 4*time.Second)
-		ss.Start()
-		for i := 0; i < 10 ; i++ {
-			if ss.CheckSingleton() {
-				log.Printf("[%s]%s.", my, i)
-				if i > 5 {
-					ss.Stop()
+		svcFunc := func (looped *bool) {
+			for i := 0; i < 2 ; i++ {
+				if *looped {
+					log.Printf("[%s]%s.", my, i)
+				} else {
+					log.Printf("[%s]CheckSingleton error", my)
+					break
 				}
-			} else {
-				log.Printf("[%s]CheckSingleton error", my)
+				time.Sleep(time.Second * time.Duration(1))
+			}
+			log.Printf("[%s]end", my)
+		}
+		ss := NewServiceSingleton(store, name, 4*time.Second, svcFunc)
+		for {
+			if ss.Start() {
+				//log.Printf("[%s]stop", my)
 				break
 			}
-			time.Sleep(time.Second * time.Duration(i+1))
+			time.Sleep(time.Second / 4)
 		}
-		ss.Stop()
-		log.Printf("[%s]end", my)
 	}
-	for i := 0; i < 10; i++ {
+	n := 10
+	for i := 0; i < n; i++ {
 		go f1("test_"+ strconv.Itoa(i))
 	}
-	time.Sleep(time.Second * 60)
+	time.Sleep(time.Second * time.Duration(n*2+1))
 }
