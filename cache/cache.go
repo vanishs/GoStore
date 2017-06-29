@@ -60,6 +60,16 @@ type SetCache interface {
 	SetRandomPop(key string) (string, error)
 }
 
+type ListCache interface {
+	ListLen(key string) (int, error)
+	ListLPush(key string, values ...interface{}) (int, error)
+	ListRPush(key string, values ...interface{}) (int, error)
+	ListLPop(key string) (string, error)
+	ListRPop(key string) (string, error)
+	ListIndex(key string, index int) (string, error)
+	//ListInsert(key string, index int, value string) error
+}
+
 // Instance is a function create a new Cache Instance
 type Instance func() Cache
 

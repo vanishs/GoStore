@@ -48,6 +48,13 @@ func _redis2value(t reflect.Kind, val interface{}) (interface{}, error) {
 	return nil, errors.New(fmt.Sprintf("Kind(%s) no support", t))
 }
 
+func _redisJoin(key string, values []interface{}) []interface{} {
+	var ss []interface{}
+	ss = append(ss, key)
+	ss = append(ss, values...)
+	return ss
+}
+
 // config
 func (self *RedisCache) config(config M) error {
 	for key, value := range config {
@@ -343,9 +350,7 @@ func (self *RedisCache) GetStFields(table, key string, fields []interface{}, typ
 	}
 	fkey := self.fullKey(table, key)
 	//exist, err := redis.Bool(self.do("HEXISTS", fkey, field))
-	var ss []interface{}
-	ss = append(ss, fkey)
-	ss = append(ss, fields...)
+	ss := _redisJoin(fkey, fields)
 	rs, err := redis.Values(self.do("HMGET", ss...))
 	//fmt.Println("~~~~~~~", ss, rs)
 	if err != nil {
@@ -377,9 +382,7 @@ func (self *RedisCache) SetStFields(table, key string, fields []interface{}, val
 
 func (self *RedisCache) DelStFields(table, key string, fields ...interface{}) (int, error) {
 	fkey := self.fullKey(table, key)
-	var ss []interface{}
-	ss = append(ss, fkey)
-	ss = append(ss, fields...)
+	ss := _redisJoin(fkey, fields)
 	//exist, err := redis.Bool(self.do("HEXISTS", fkey, field))
 	rs, err := redis.Int(self.do("HDEL", ss...))
 	//log.Printf("****%s, %s", rs, err)
@@ -390,9 +393,7 @@ func (self *RedisCache) DelStFields(table, key string, fields ...interface{}) (i
 }
 
 func (self *RedisCache) SetAdd(key string, members ...interface{}) (int, error) {
-	var ss []interface{}
-	ss = append(ss, key)
-	ss = append(ss, members...)
+	ss := _redisJoin(key, members)
 	rs, err := redis.Int(self.do("SADD", ss...))
 	if err != nil {
 		return 0, err
@@ -401,9 +402,7 @@ func (self *RedisCache) SetAdd(key string, members ...interface{}) (int, error) 
 }
 
 func (self *RedisCache) SetRemove(key string, members ...interface{}) (int, error) {
-	var ss []interface{}
-	ss = append(ss, key)
-	ss = append(ss, members...)
+	ss := _redisJoin(key, members)
 	rs, err := redis.Int(self.do("SREM", ss...))
 	if err != nil {
 		return 0, err
@@ -435,6 +434,63 @@ func (self *RedisCache) SetRandomPop(key string) (string, error) {
 	return rs, nil
 
 }
+
+func (self *RedisCache) ListLen(key string) (int, error) {
+	rs, err := redis.Int(self.do("LLEN", key))
+	if err != nil {
+		return 0, err
+	}
+	return rs, nil
+}
+
+func (self *RedisCache) ListLPush(key string, values ...interface{}) (int, error) {
+	ss := _redisJoin(key, values)
+	if rs, err := redis.Int(self.do("LPUSH", ss...)); err != nil {
+		return 0, err
+	} else {
+		return rs, nil
+	}
+}
+
+func (self *RedisCache) ListRPush(key string, values ...interface{}) (int, error) {
+	ss := _redisJoin(key, values)
+	if rs, err := redis.Int(self.do("RPUSH", ss...)); err != nil {
+		return 0, err
+	} else {
+		return rs, nil
+	}
+}
+
+func (self *RedisCache) ListLPop(key string) (string, error) {
+	if rs, err := redis.String(self.do("LPOP", key)); err != nil {
+		return "", err
+	} else {
+		return rs, nil
+	}
+}
+
+func (self *RedisCache) ListRPop(key string) (string, error) {
+	if rs, err := redis.String(self.do("RPOP", key)); err != nil {
+		return "", err
+	} else {
+		return rs, nil
+	}
+}
+
+func (self *RedisCache) ListIndex(key string, index int) (string, error) {
+	if rs, err := redis.String(self.do("LINDEX", key, index)); err != nil {
+		return "", err
+	} else {
+		return rs, nil
+	}
+}
+//func (self *RedisCache) ListInsert(key string, index int, value string) error {
+//	if rs, err := redis.String(self.do("LINSERT", key, index)); err != nil {
+//		return "", err
+//	} else {
+//		return rs, nil
+//	}
+//}
 
 func init() {
 	cache.Register("redis", New)
