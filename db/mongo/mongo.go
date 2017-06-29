@@ -238,6 +238,16 @@ func (self *MongoDB) FindAndModify(table string, query M, options db.ChangeOptio
 	}
 }
 
+func (self *MongoDB) Count(table string, query M) (int, error) {
+	s, _db := self._getSessionAndDb()
+	defer s.Close()
+	if n, err := _db.C(table).Find(query).Count(); err != nil {
+		return 0, err
+	} else {
+		return n, nil
+	}
+}
+
 func init() {
 	db.Register("mongodb", NewMongoDB)
 }

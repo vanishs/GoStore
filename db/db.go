@@ -35,6 +35,7 @@ type DB interface {
 	Deletes(table string, query M) (count int, err error)
 	//Update(table, key string, fields M) error
 	FindAndModify(table string, query M, options ChangeOption) (count int, doc interface{}, err error)
+	Count(table string, query M) (int, error)
 }
 
 // Instance is a function create a new DB Instance
