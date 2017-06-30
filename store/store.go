@@ -19,6 +19,8 @@ type Store struct {
 	lockMgr *lock.LockMgr
 	Cache cache.Cache
 	StCache cache.StructCache
+	SetCache cache.SetCache
+	ListCache cache.ListCache
 	Db db.DB
 	Infos TableInfos
 	ServiceAgent IServiceAgent
@@ -40,6 +42,8 @@ func (self *Store) NewCache(name string) error {
 	}
 	self.Cache = c
 	self.StCache = c.(cache.StructCache)
+	self.SetCache = c.(cache.SetCache)
+	self.ListCache = c.(cache.ListCache)
 	return nil
 }
 
