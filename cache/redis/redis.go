@@ -492,6 +492,16 @@ func (self *RedisCache) ListIndex(key string, index int) (string, error) {
 //	}
 //}
 
+// Keys : Find all keys matching the given pattern
+func (rc *RedisCache) Keys(match string) []string {
+	keys, err := redis.Strings(rc.do("KEYS", match))
+	if err != nil {
+		return []string{}
+	}
+
+	return keys
+}
+
 func init() {
 	cache.Register("redis", New)
 }

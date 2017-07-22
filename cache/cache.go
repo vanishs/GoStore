@@ -27,6 +27,8 @@ type Cache interface {
 	IsExist(key string) bool
 	// EXPIRE
 	Expire(key string, timeout int) bool
+	// Keys : Find all keys matching the given pattern
+	Keys(match string) []string
 }
 
 type StructCache interface {
