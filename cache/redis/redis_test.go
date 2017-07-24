@@ -132,3 +132,17 @@ func testSet(bm cache.Cache, t *testing.T) {
 	s1, err := si.SetRandomPop(key)
 	log.Println("tSet:", s1, err)
 }
+
+func testKeys(bm cache.Cache, t *testing.T) {
+	key := "set1"
+	si := bm.(cache.SetCache)
+	si.SetAdd(key, 1, 2, 3, 4, "a", "b", "c", "ddd")
+	si.SetRemove(key, "ddd", 4)
+	keys, err := si.SetRandom(key, 2)
+	log.Println("tSet:", keys, err)
+	s1, err := si.SetRandomPop(key)
+	log.Println("tSet:", s1, err)
+
+	ls := bm.Keys("*")
+	log.Println("**********Keys:", ls)
+}
