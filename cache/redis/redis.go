@@ -502,6 +502,21 @@ func (rc *RedisCache) Keys(match string) []string {
 	return keys
 }
 
+// Rename : Rename a key
+func (rc *RedisCache) Rename(oldkey, newkey string) bool {
+
+	val, err := redis.String(rc.do("RENAME", oldkey, newkey))
+	if err != nil {
+		return false
+	}
+
+	if val != "OK" {
+		return false
+	}
+
+	return true
+}
+
 func init() {
 	cache.Register("redis", New)
 }
