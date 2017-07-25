@@ -29,6 +29,8 @@ type Cache interface {
 	Expire(key string, timeout int) bool
 	// Keys : Find all keys matching the given pattern
 	Keys(match string) []string
+	// Rename : Rename a key
+	Rename(oldkey, newkey string) bool
 }
 
 type StructCache interface {
