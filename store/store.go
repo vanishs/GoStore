@@ -1,35 +1,35 @@
 package store
 
 import (
-	"reflect"
-	. "github.com/seewindcn/GoStore"
-	"github.com/seewindcn/GoStore/db"
-	"github.com/seewindcn/GoStore/cache"
-	_ "github.com/seewindcn/GoStore/db/mongo"
-	_ "github.com/seewindcn/GoStore/cache/redis"
+	"errors"
 	"fmt"
 	"log"
-	"github.com/seewindcn/GoStore/lock"
+	"reflect"
 	"time"
-	"errors"
+
+	"github.com/garyburd/redigo/redis"
+	. "github.com/seewindcn/GoStore"
+	"github.com/seewindcn/GoStore/cache"
+	_ "github.com/seewindcn/GoStore/cache/redis"
+	"github.com/seewindcn/GoStore/db"
+	_ "github.com/seewindcn/GoStore/db/mongo"
+	"github.com/seewindcn/GoStore/lock"
 )
 
-
 type Store struct {
-	lockMgr *lock.LockMgr
-	Cache cache.Cache
-	StCache cache.StructCache
-	SetCache cache.SetCache
-	ListCache cache.ListCache
-	Db db.DB
-	Infos TableInfos
+	lockMgr      *lock.LockMgr
+	Cache        cache.Cache
+	StCache      cache.StructCache
+	SetCache     cache.SetCache
+	ListCache    cache.ListCache
+	Db           db.DB
+	Infos        TableInfos
 	ServiceAgent IServiceAgent
 }
 
-
 func New() *Store {
 	s := &Store{
-		Infos:make(map[reflect.Type]*TableInfo),
+		Infos: make(map[reflect.Type]*TableInfo),
 	}
 	s.ServiceAgent = NewStoreServiceAgent(s)
 	return s
@@ -136,7 +136,7 @@ func (self *Store) Load(obj interface{}, cache bool) error {
 	if cache && info.IsCache && self.StCache != nil {
 		key := info.GetStrKey(obj)
 		exist, err := self.StCache.GetStruct(info.Name, key, obj)
-		log.Println("[store] load from cache", key, exist, err)
+		// log.Println("[store] load from cache", key, exist, err)
 		if err == nil && exist {
 			return nil
 		}
@@ -158,39 +158,81 @@ func (self *Store) Loads(query M, objs interface{}, options *db.LoadOption) erro
 }
 
 func (self *Store) CheckAndRegister(hash, name, value string) (string, bool) {
-	val, err := self.StCache.GetStField(hash, "", name, reflect.String)
-	if err != nil || val.(string) == ""  { // not exist
-		if value == "" {  // if not exist, return "", false
-			return "", false
-		}
 
-		// set value
-		l := self.NewLock("_CAR_" + hash + "-" + name)
-		l.Lock()
-		defer l.Unlock()
-		val, err = self.StCache.GetStField(hash, "", name, reflect.String)
-		if (err != nil || val.(string) == "") {
-			self.StCache.SetStField(hash, "", name, value, true)
-			return value, true
-		}
+	if "" == value {
+		log.Println("[***********]", "ipAddr is empty")
 		return "", false
 	}
-	return val.(string), false
+
+firstGet:
+	val, err := self.StCache.GetStField(hash, "", name, reflect.String)
+	if err != nil && err != redis.ErrNil {
+		log.Println("[***********]", "redis overload,1s try again", err)
+		time.Sleep(1 * time.Second)
+		goto firstGet
+	}
+
+	if val.(string) != "" {
+		return val.(string), false
+	}
+
+	// set value
+	l := self.NewLock("_CAR_" + hash + "-" + name)
+	l.Lock()
+	defer l.Unlock()
+
+lockGet:
+	val, err = self.StCache.GetStField(hash, "", name, reflect.String)
+	if err != nil && err != redis.ErrNil {
+		log.Println("[***********]", "redis overload,1s try again", err)
+		time.Sleep(1 * time.Second)
+		goto lockGet
+	}
+
+	if val.(string) != "" {
+		return val.(string), false
+	}
+
+lockSet:
+	_, err = self.StCache.SetStField(hash, "", name, value, true)
+	if err != nil {
+		log.Println("[***********]", "redis overload,1s try again", err)
+		time.Sleep(1 * time.Second)
+		goto lockSet
+	}
+
+	return value, true
+
 }
 
 func (self *Store) UnRegister(hash, name, oldVal string) bool {
 	l := self.NewLock("_CAR_" + hash + "-" + name)
 	l.Lock()
 	defer l.Unlock()
+
+firstGet:
 	val, err := self.StCache.GetStField(hash, "", name, reflect.String)
-	if err == nil {
-		if oldVal == "" || val.(string) == oldVal {
-			self.StCache.DelStFields(hash, "", name)
-			return true
-		}
+	if err == redis.ErrNil {
+		return true
 	}
-	return false
+
+	if err != nil {
+		log.Println("[***********]", "redis overload,1s try again", err)
+		time.Sleep(1 * time.Second)
+		goto firstGet
+	}
+
+	if oldVal != "" && val.(string) != oldVal {
+		return false
+	}
+
+firstDel:
+	_, err = self.StCache.DelStFields(hash, "", name)
+	if err != nil {
+		log.Println("[***********]", "redis overload,1s try again", err)
+		time.Sleep(1 * time.Second)
+		goto firstDel
+	}
+
+	return true
 }
-
-
-
