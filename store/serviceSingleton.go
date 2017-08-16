@@ -1,18 +1,19 @@
 package store
 
-
 import (
-	"github.com/seewindcn/GoStore/lock"
-	"time"
+	"log"
 	"sync"
+	"time"
+
+	"github.com/seewindcn/GoStore/lock"
 )
 
 type ServiceSingleton struct {
 	sync.Mutex
-	name string
-	expiry time.Duration
-	lk lock.Lock
-	locked bool
+	name    string
+	expiry  time.Duration
+	lk      lock.Lock
+	locked  bool
 	svcFunc SvcFunc
 }
 
@@ -20,15 +21,14 @@ type SvcFunc func(*bool)
 
 func NewServiceSingleton(store *Store, name string, expiry time.Duration, svcFunc SvcFunc) *ServiceSingleton {
 	sss := &ServiceSingleton{
-		name: name,
+		name:   name,
 		expiry: expiry,
 		//lk: store.NewLock(name),
-		lk: store.NewLockEx(name, expiry, 1, 0),
+		lk:      store.NewLockEx(name, expiry, 1, 0),
 		svcFunc: svcFunc,
 	}
 	return sss
 }
-
 
 func (self *ServiceSingleton) Start() bool {
 	self.Lock()
@@ -56,8 +56,9 @@ func (self *ServiceSingleton) _loop() {
 	}()
 	go func() {
 		for {
-			time.Sleep(self.expiry/2)
+			time.Sleep(self.expiry / 2)
 			if !looped || !self.lk.Extend() {
+				log.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 				break
 			}
 		}
@@ -69,5 +70,3 @@ func (self *ServiceSingleton) _loop() {
 func (self *ServiceSingleton) Stop() {
 	self.lk.Unlock()
 }
-
-
