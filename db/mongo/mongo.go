@@ -1,29 +1,29 @@
 package mongo
 
 import (
-	"gopkg.in/mgo.v2"
-	. "github.com/seewindcn/GoStore"
-	"gopkg.in/mgo.v2/bson"
-	"github.com/seewindcn/GoStore/db"
-	"strings"
-	"reflect"
 	"log"
+	"reflect"
+	"strings"
+
+	. "github.com/seewindcn/GoStore"
+	"github.com/seewindcn/GoStore/db"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 var (
-	ID_FIELD = "_id"
-	IS_AUTO_INC = "isAutoInc"
+	ID_FIELD       = "_id"
+	IS_AUTO_INC    = "isAutoInc"
 	AUTO_INC_TABLE = "_auto_inc_"
-	AUTO_INC_NAME = ID_FIELD
-	AUTO_INC_ID = "id"
+	AUTO_INC_NAME  = ID_FIELD
+	AUTO_INC_ID    = "id"
 )
 
 type MongoDB struct {
-	url string  // like: mongodb://user:pass@127.0.0.1:27017,127.0.0.2:27017/dbname?maxPoolSize=100&connect=direct
-	s *mgo.Session
+	url   string // like: mongodb://user:pass@127.0.0.1:27017,127.0.0.2:27017/dbname?maxPoolSize=100&connect=direct
+	s     *mgo.Session
 	Infos TableInfos
 }
-
 
 func NewMongoDB() db.DB {
 	return &MongoDB{}
@@ -49,9 +49,8 @@ func isInt(k reflect.Kind) bool {
 	case reflect.Int, reflect.Int64, reflect.Int32, reflect.Uint64, reflect.Uint, reflect.Uint32:
 		return true
 	}
-	return false;
+	return false
 }
-
 
 // config
 func (self *MongoDB) config(config M) error {
@@ -89,9 +88,9 @@ func (self *MongoDB) _ensureIndexs() {
 			continue
 		}
 		index := mgo.Index{
-			Key: info.Index.Key,
+			Key:    info.Index.Key,
 			Unique: info.Index.Unique,
-			Name: info.Index.Name,
+			Name:   info.Index.Name,
 		}
 		err := db.C(info.Name).EnsureIndex(index)
 		if err != nil {
@@ -127,7 +126,7 @@ func (self *MongoDB) _initAutoInc(db *mgo.Database, info *TableInfo, v reflect.V
 	}
 	//log.Printf("*********%s, %s\n", v, v.Kind())
 	fv := v.Field(info.KeyIndex)
-	if info.Params[IS_AUTO_INC].(bool) && fv.Int()==0 {
+	if info.Params[IS_AUTO_INC].(bool) && fv.Int() == 0 {
 		fv.SetInt(int64(autoInc(db, info.Name)))
 	}
 }
@@ -198,12 +197,12 @@ func (self *MongoDB) Loads(table string, query M, obj interface{}, options *db.L
 func (self *MongoDB) RandomLoad(table string, obj interface{}) error {
 	s, _db := self._getSessionAndDb()
 	defer s.Close()
-	pipe := _db.C(table).Pipe([]M{{"$sample": M{"size":1}}})
+	pipe := _db.C(table).Pipe([]M{{"$sample": M{"size": 1}}})
 	return pipe.One(obj)
 }
 
 func (self *MongoDB) _load(db *mgo.Database, table string, key, obj interface{}) error {
-	return db.C(table).Find(M{ID_FIELD:key}).One(obj)
+	return db.C(table).Find(M{ID_FIELD: key}).One(obj)
 }
 
 func (self *MongoDB) Delete(table string, id interface{}) error {
@@ -222,13 +221,13 @@ func (self *MongoDB) Deletes(table string, query M) (count int, err error) {
 	}
 }
 
-func (self *MongoDB) FindAndModify(table string, query M, options db.ChangeOption) (count int, doc interface{}, err error){
+func (self *MongoDB) FindAndModify(table string, query M, options db.ChangeOption) (count int, doc interface{}, err error) {
 	s, _db := self._getSessionAndDb()
 	defer s.Close()
 	result := M{}
-	change := mgo.Change{ Update: options.Update,
-		Remove:options.Remove,
-		Upsert: options.Upsert,
+	change := mgo.Change{Update: options.Update,
+		Remove:    options.Remove,
+		Upsert:    options.Upsert,
 		ReturnNew: options.ReturnNew,
 	}
 	if info, err := _db.C(table).Find(query).Apply(change, &result); err != nil {

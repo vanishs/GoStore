@@ -15,11 +15,12 @@
 package redis
 
 import (
-	"testing"
-	"github.com/seewindcn/GoStore/cache"
-	"reflect"
-	. "github.com/seewindcn/GoStore"
 	"log"
+	"reflect"
+	"testing"
+
+	. "github.com/seewindcn/GoStore"
+	"github.com/seewindcn/GoStore/cache"
 )
 
 func preRedis(t *testing.T) cache.Cache {
@@ -48,8 +49,8 @@ func TestRedisCache(t *testing.T) {
 }
 
 type Obj struct {
-	Name string
-	Sex int
+	Name  string
+	Sex   int
 	Level int
 }
 
@@ -58,8 +59,8 @@ func TestStructRedisCache(t *testing.T) {
 	key := "obj1"
 	bm := preRedis(t).(cache.StructCache)
 	o1 := &Obj{
-		Name:"abc",
-		Sex: 1,
+		Name:  "abc",
+		Sex:   1,
 		Level: 10,
 	}
 	table := "obj"
@@ -79,7 +80,6 @@ func TestStructRedisCache(t *testing.T) {
 		t.Fatalf("GetStruct values(%s) no vaild", o2)
 	}
 
-
 	// ******SetStField
 	//key = ""
 	dest := "ddd"
@@ -91,7 +91,7 @@ func TestStructRedisCache(t *testing.T) {
 	}
 
 	// *****GetStField
-	val, err := bm.GetStField(table, key, "Name", reflect.String);
+	val, err := bm.GetStField(table, key, "Name", reflect.String)
 	if err != nil {
 		t.Error("GetStField", err)
 	} else if val.(string) != dest {
@@ -125,7 +125,7 @@ func TestStructRedisCache(t *testing.T) {
 func testSet(bm cache.Cache, t *testing.T) {
 	key := "set1"
 	si := bm.(cache.SetCache)
-	si.SetAdd(key, 1,2,3, 4, "a", "b", "c", "ddd")
+	si.SetAdd(key, 1, 2, 3, 4, "a", "b", "c", "ddd")
 	si.SetRemove(key, "ddd", 4)
 	keys, err := si.SetRandom(key, 2)
 	log.Println("tSet:", keys, err)

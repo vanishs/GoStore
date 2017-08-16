@@ -1,13 +1,14 @@
 package redis
 
 import (
+	"errors"
+	"fmt"
+	"reflect"
 	"time"
+
 	"github.com/garyburd/redigo/redis"
 	. "github.com/seewindcn/GoStore"
 	"github.com/seewindcn/GoStore/cache"
-	"errors"
-	"reflect"
-	"fmt"
 )
 
 var (
@@ -17,16 +18,16 @@ var (
 
 // Cache is Redis cache adapter.
 type RedisCache struct {
-	pool	*redis.Pool
-	addr	string
-	dbNum	int
-	pwd	string
+	pool  *redis.Pool
+	addr  string
+	dbNum int
+	pwd   string
 }
 
 // New create new redis cache with default collection name.
 func New() cache.Cache {
 	return &RedisCache{
-		dbNum:0,
+		dbNum: 0,
 	}
 }
 
@@ -106,9 +107,9 @@ func (self *RedisCache) Start(config M) error {
 	}
 	// initialize a new pool
 	self.pool = &redis.Pool{
-		MaxIdle:     3,
-		IdleTimeout: 500 * time.Second,
-		Dial:        dialFunc,
+		MaxIdle:      3,
+		IdleTimeout:  500 * time.Second,
+		Dial:         dialFunc,
 		TestOnBorrow: testFunc,
 	}
 	return nil
@@ -222,9 +223,8 @@ func (self *RedisCache) Expire(key string, timeout int) bool {
 	return v
 }
 
-
 func (self *RedisCache) fullKey(table, key string) string {
-	if key== "" {
+	if key == "" {
 		return table
 	}
 	return table + "-" + key
@@ -318,7 +318,7 @@ func (self *RedisCache) GetStAllFields(table, key string) (fields map[string][]b
 	}
 	fields = make(map[string][]byte)
 	l := len(rs)
-	for i := 0; i < l; i = i+2 {
+	for i := 0; i < l; i = i + 2 {
 		k := string(rs[i].([]byte))
 		v := rs[i+1].([]byte)
 		//log.Println("~~~~", k, v)
@@ -386,7 +386,7 @@ func (self *RedisCache) DelStFields(table, key string, fields ...interface{}) (i
 	//exist, err := redis.Bool(self.do("HEXISTS", fkey, field))
 	rs, err := redis.Int(self.do("HDEL", ss...))
 	//log.Printf("****%s, %s", rs, err)
-	if err != nil  {
+	if err != nil {
 		return 0, err
 	}
 	return rs, nil
@@ -484,6 +484,7 @@ func (self *RedisCache) ListIndex(key string, index int) (string, error) {
 		return rs, nil
 	}
 }
+
 //func (self *RedisCache) ListInsert(key string, index int, value string) error {
 //	if rs, err := redis.String(self.do("LINSERT", key, index)); err != nil {
 //		return "", err
@@ -520,6 +521,3 @@ func (rc *RedisCache) Rename(oldkey, newkey string) bool {
 func init() {
 	cache.Register("redis", New)
 }
-
-
-

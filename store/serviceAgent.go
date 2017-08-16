@@ -2,11 +2,12 @@ package store
 
 import (
 	"encoding/json"
-	. "github.com/seewindcn/GoStore"
 	"log"
 	"math/rand"
 	"sync"
 	"time"
+
+	. "github.com/seewindcn/GoStore"
 )
 
 const (

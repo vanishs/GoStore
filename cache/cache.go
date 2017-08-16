@@ -3,6 +3,7 @@ package cache
 import (
 	"fmt"
 	"reflect"
+
 	. "github.com/seewindcn/GoStore"
 )
 
@@ -79,7 +80,6 @@ type Instance func() Cache
 
 var adapters = make(map[string]Instance)
 
-
 // Register makes a cache adapter available by the adapter name.
 // If Register is called twice with the same name or if driver is nil,
 // it panics.
@@ -93,7 +93,7 @@ func Register(name string, adapter Instance) {
 	adapters[name] = adapter
 }
 
-func NewCache(name string) (adapter Cache, err error){
+func NewCache(name string) (adapter Cache, err error) {
 	instFunc, ok := adapters[name]
 	if !ok {
 		err = fmt.Errorf("cache: unknown adapter name %q", name)

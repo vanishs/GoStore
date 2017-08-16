@@ -2,10 +2,11 @@ package redis
 
 import (
 	"time"
-	"gopkg.in/redsync.v1"
-	"github.com/seewindcn/GoStore/lock"
-	"github.com/seewindcn/GoStore/cache/redis"
+
 	"github.com/seewindcn/GoStore"
+	"github.com/seewindcn/GoStore/cache/redis"
+	"github.com/seewindcn/GoStore/lock"
+	"gopkg.in/redsync.v1"
 )
 
 const (
@@ -13,8 +14,8 @@ const (
 )
 
 type RedisDriver struct {
-	mgr *lock.LockMgr
-	rs *redsync.Redsync
+	mgr     *lock.LockMgr
+	rs      *redsync.Redsync
 	options []redsync.Option
 }
 
@@ -28,8 +29,8 @@ func New(mgr *lock.LockMgr, st interface{}) lock.Driver {
 	}
 
 	d := &RedisDriver{
-		mgr: mgr,
-		rs: redsync.New(pools),
+		mgr:     mgr,
+		rs:      redsync.New(pools),
 		options: []redsync.Option{},
 	}
 	d.Init()
@@ -44,11 +45,11 @@ func (self *RedisDriver) Init() {
 }
 
 func (self *RedisDriver) NewLock(name string) lock.Lock {
-	mx := self.rs.NewMutex(LOCK_PRE + name, self.options...)
+	mx := self.rs.NewMutex(LOCK_PRE+name, self.options...)
 	return mx
 }
 func (self *RedisDriver) NewLockEx(name string, expiry time.Duration, tries int, delay time.Duration) lock.Lock {
-	mx := self.rs.NewMutex(LOCK_PRE + name,
+	mx := self.rs.NewMutex(LOCK_PRE+name,
 		redsync.SetExpiry(GoStore.If(expiry > 0, expiry, self.mgr.Expiry).(time.Duration)),
 		redsync.SetTries(GoStore.If(tries > 0, tries, self.mgr.Tries).(int)),
 		redsync.SetRetryDelay(GoStore.If(delay > 0, delay, self.mgr.Delay).(time.Duration)),
@@ -59,4 +60,3 @@ func (self *RedisDriver) NewLockEx(name string, expiry time.Duration, tries int,
 func init() {
 	lock.Register("redis", New)
 }
-

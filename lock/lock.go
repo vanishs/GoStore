@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-
 // lock
 type Lock interface {
 	Lock() error
@@ -20,10 +19,10 @@ type Driver interface {
 
 //distributed lock mgr
 type LockMgr struct {
-	d Driver
+	d      Driver
 	Expiry time.Duration
-	Tries int
-	Delay time.Duration
+	Tries  int
+	Delay  time.Duration
 }
 
 type NewDriver func(mgr *LockMgr, store interface{}) Driver
@@ -31,7 +30,6 @@ type NewDriver func(mgr *LockMgr, store interface{}) Driver
 func New() *LockMgr {
 	return &LockMgr{}
 }
-
 
 func (self *LockMgr) Init(store interface{}, driver string, expiry time.Duration, tries int, delay time.Duration) {
 	if expiry <= 0 {
@@ -68,4 +66,3 @@ func Register(name string, new NewDriver) {
 	}
 	drivers[name] = new
 }
-

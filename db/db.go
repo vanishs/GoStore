@@ -1,15 +1,15 @@
 package db
 
 import (
-	. "github.com/seewindcn/GoStore"
 	"fmt"
+
+	. "github.com/seewindcn/GoStore"
 )
 
 type LoadOption struct {
 	SortFields []string
-	Skip int
-	Limit int
-
+	Skip       int
+	Limit      int
 }
 
 type ChangeOption struct {
@@ -56,7 +56,7 @@ func Register(name string, adapter Instance) {
 	adapters[name] = adapter
 }
 
-func NewDB(name string) (adapter DB, err error){
+func NewDB(name string) (adapter DB, err error) {
 	instFunc, ok := adapters[name]
 	if !ok {
 		err = fmt.Errorf("db: unknown adapter name %q", name)

@@ -1,26 +1,24 @@
 package mongo
 
 import (
-	"testing"
-	. "github.com/seewindcn/GoStore"
-	"github.com/seewindcn/GoStore/db"
 	"log"
 	"strconv"
+	"testing"
+
+	. "github.com/seewindcn/GoStore"
+	"github.com/seewindcn/GoStore/db"
 )
 
 type Obj1 struct {
-	Id int `bson:"_id"`
+	Id   int `bson:"_id"`
 	Name string
-	Sex int
+	Sex  int
 }
 
 type Obj2 struct {
-	Id string `json:"id" bson:"_id,omitempty"`
+	Id   string `json:"id" bson:"_id,omitempty"`
 	Name string
-	Sex int
-	Matchs []string
-	Dict1 map[string]string  // only support string key
-	Dict2 map[string]interface{}
+	Sex  int
 }
 
 func preMongoDB(t *testing.T) db.DB {
@@ -35,7 +33,7 @@ func preMongoDB(t *testing.T) db.DB {
 
 func _saveSomeObj(m db.DB, table string) {
 	for i := 0; i < 10; i++ {
-		o1 := &Obj1{Id:i, Name:"test_" + strconv.Itoa(i), Sex:i}
+		o1 := &Obj1{Id: i, Name: "test_" + strconv.Itoa(i), Sex: i}
 		m.Save(table, nil, o1)
 		//println("save", i)
 	}
@@ -54,23 +52,16 @@ func TestMongoDB_Load(t *testing.T) {
 		}
 		println(">>>RandomLoad:", o1.Name)
 	}
-
-	o2 := &Obj2{Id:"obj2"}
-	m.Load("test1", "Id", o2)
-	log.Printf("***o2:%s, matchs:%s, Dict1:%s, Dict2:%s", o2, o2.Matchs, o2.Dict1, o2.Dict2)
 }
 
 func TestMongoDB_Save(t *testing.T) {
 	var err error
 	m := preMongoDB(t)
 	defer m.Stop()
-	o1 := &Obj1{Name:"idtest", Sex:1}
-	o2 := &Obj2{Id:"obj2", Name:"idtest2", Sex:2}
-	o2.Matchs = []string{"a", "b", "c"}
-	o2.Dict1 = map[string]string{"1":"a", "2":"b", "3":"d"}
-	o2.Dict2 = map[string]interface{}{"1":[]string{"a", "b", "c"}, "2":"b", "3":1, "4":o2.Dict1}
-	err = m.Save("test1", o1.Id, o1)
-	err = m.Save("test1", o2.Id, o2)
+	o1 := &Obj1{Name: "idtest", Sex: 1}
+	o2 := &Obj2{Name: "idtest2", Sex: 1}
+	err = m.Save("test1", nil, o1)
+	err = m.Save("test1", nil, o2)
 	o1.Id = 1
 	err = m.Save("test1", o1.Id, o1)
 	if err != nil {
@@ -83,13 +74,9 @@ func TestMongoDB_Delete(t *testing.T) {
 	m := preMongoDB(t)
 	defer m.Stop()
 	m.Delete("test1", 1)
-	o2 := &Obj2{Name:"idtest2del", Sex:1}
-	m.Save("test1", nil, o2)
-	c, err := m.Deletes("test1", M{"name":"idtest2del"})
+	c, err := m.Deletes("test1", M{"name": "idtest2"})
 	if err != nil {
 		t.Error("Deletes error", err)
 	}
 	log.Println("******Deletes:", c)
 }
-
-

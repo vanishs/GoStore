@@ -1,27 +1,27 @@
 package store
 
 import (
+	"log"
+	"reflect"
+	"strconv"
 	"testing"
+	"time"
+
 	. "github.com/seewindcn/GoStore"
 	_ "github.com/seewindcn/GoStore/lock/redis"
-	"reflect"
-	"log"
-	"time"
-	"strconv"
 )
 
 type Obj1 struct {
-	Id int `bson:"_id"`
+	Id   int `bson:"_id"`
 	Name string
-	Sex int
+	Sex  int
 }
 
 type Obj2 struct {
-	Id string `json:"id" bson:"_id,omitempty"`
+	Id   string `json:"id" bson:"_id,omitempty"`
 	Name string
-	Sex int
+	Sex  int
 }
-
 
 func TestStore(t *testing.T) {
 	store := New()
@@ -33,7 +33,7 @@ func TestStore(t *testing.T) {
 		t.Error("NewCache error:", err)
 	}
 	store.RegTable("Obj1", reflect.TypeOf((*Obj1)(nil)).Elem(), true,
-		&DbIndex{Key:[]string{"name"}, Unique:true},
+		&DbIndex{Key: []string{"name"}, Unique: true},
 	)
 	store.RegTable("Obj2", reflect.TypeOf((*Obj2)(nil)).Elem(), true, nil)
 	//store.RegTable("Obj1", reflect.TypeOf((*Obj1)(nil)), true)
@@ -42,11 +42,11 @@ func TestStore(t *testing.T) {
 	}
 
 	//
-	o1 := &Obj1{Id:999, Name:"abc2233", Sex:2}
+	o1 := &Obj1{Id: 999, Name: "abc2233", Sex: 2}
 	if err := store.Save(o1); err != nil {
 		t.Error("store save error:", err)
 	}
-	o2 := &Obj1{Id:o1.Id}
+	o2 := &Obj1{Id: o1.Id}
 	if err := store.Load(o2, true); err != nil {
 		t.Error("store load error:", err)
 	}
@@ -55,17 +55,17 @@ func TestStore(t *testing.T) {
 		t.Fatalf("store load error:%s", o2)
 	}
 
-	var objs  []Obj1
-	store.Loads(M{"sex":2}, &objs, nil)
+	var objs []Obj1
+	store.Loads(M{"sex": 2}, &objs, nil)
 	log.Println("*****", len(objs), objs[0])
 
-	o3 := &Obj1{Id:o1.Id, Name:"cacheName"}
+	o3 := &Obj1{Id: o1.Id, Name: "cacheName"}
 	if err := store.CacheObj(o3); err != nil {
 		t.Error("store cache error", err)
 	}
 
 	// lockMgr
-	store.NewLockMgr("redis", 4 * time.Second, 0, 0)
+	store.NewLockMgr("redis", 4*time.Second, 0, 0)
 	testIRegistry(store)
 
 	testServiceAgent(store)
@@ -97,9 +97,9 @@ func testServiceAgent(store *Store) {
 	c1 := 0
 	for i := 0; i < 5; i++ {
 		svc := &Service{
-			Name: name + strconv.Itoa(i),
+			Name:    name + strconv.Itoa(i),
 			Service: service,
-			InAddr: addr,
+			InAddr:  addr,
 			OutAddr: addr,
 			UpdateFunc: func() int {
 				c1 += 1
@@ -119,8 +119,8 @@ func testServiceSingleton(store *Store) {
 	name := "singletonTest"
 
 	f1 := func(my string) {
-		svcFunc := func (looped *bool) {
-			for i := 0; i < 2 ; i++ {
+		svcFunc := func(looped *bool) {
+			for i := 0; i < 2; i++ {
 				if *looped {
 					log.Printf("[%s]%s.", my, i)
 				} else {
@@ -142,7 +142,7 @@ func testServiceSingleton(store *Store) {
 	}
 	n := 10
 	for i := 0; i < n; i++ {
-		go f1("test_"+ strconv.Itoa(i))
+		go f1("test_" + strconv.Itoa(i))
 	}
 	time.Sleep(time.Second * time.Duration(n*2+1))
 }

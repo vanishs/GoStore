@@ -2,11 +2,11 @@ package GoStore
 
 import (
 	"encoding/json"
-	"reflect"
-	"strconv"
-	"log"
 	"fmt"
+	"log"
+	"reflect"
 	"runtime"
+	"strconv"
 )
 
 var (
@@ -23,17 +23,18 @@ type M map[string]interface{}
 type IRegistry interface {
 	CheckAndRegister(hash, name, value string) (val string, isNew bool)
 	UnRegister(hash, name, oldVal string) bool
+	CheckAndUpdate(hash, name, value string) (val string, isNew bool)
 	//Extend(hash, name string) bool
 }
 
 type ServiceStateUpdate func() (loadCount int)
 
 type Service struct {
-	Name string
-	Service string
-	InAddr string
-	OutAddr string
-	LoadCount int
+	Name       string
+	Service    string
+	InAddr     string
+	OutAddr    string
+	LoadCount  int
 	UpdateTime int64
 	UpdateFunc ServiceStateUpdate `json:"-"`
 }
@@ -46,7 +47,6 @@ func (self *Service) GetKey() string {
 	return GetServiceKey(self.Service, self.Name)
 }
 
-
 type IServiceAgent interface {
 	Start()
 	Register(svc *Service)
@@ -58,23 +58,22 @@ type IServiceAgent interface {
 }
 
 type TableInfo struct {
-	Name string
+	Name     string
 	KeyIndex int
-	IsCache bool
-	SType reflect.Type
-	Params M
-	Index *DbIndex
+	IsCache  bool
+	SType    reflect.Type
+	Params   M
+	Index    *DbIndex
 }
 
 type DbIndex struct {
-	Key	[]string // Index key fields; prefix name with dash (-) for descending order
-	Unique	bool     // Prevent two documents from having the same index key
-	Name	string
+	Key    []string // Index key fields; prefix name with dash (-) for descending order
+	Unique bool     // Prevent two documents from having the same index key
+	Name   string
 }
 
-
 func NewTableInfo() *TableInfo {
-	return &TableInfo{Params:make(M)}
+	return &TableInfo{Params: make(M)}
 }
 
 func (self *TableInfo) GetKey(obj interface{}) interface{} {
@@ -106,7 +105,7 @@ func (self TableInfos) GetTableInfo(obj interface{}) *TableInfo {
 	return info
 }
 
-func Json2Map(sjson string)  (M, error) {
+func Json2Map(sjson string) (M, error) {
 	var rs interface{}
 	err := json.Unmarshal([]byte(sjson), &rs)
 	if err != nil {
@@ -123,7 +122,7 @@ func GetValue(obj interface{}) reflect.Value {
 	} else {
 		v = reflect.ValueOf(obj)
 	}
-	if v.Kind() == reflect.Ptr {  // if obj is pointer,
+	if v.Kind() == reflect.Ptr { // if obj is pointer,
 		v = v.Elem()
 	}
 	return v
@@ -149,10 +148,10 @@ func If(condition bool, trueVal, falseVal interface{}) interface{} {
 	return falseVal
 }
 
-func PrintRecover(e interface {}) interface {} {
+func PrintRecover(e interface{}) interface{} {
 	if e != nil {
 		log.Printf("recover: %v\n", e)
-		for skip:=1; ; skip++ {
+		for skip := 1; ; skip++ {
 			pc, file, line, ok := runtime.Caller(skip)
 			if !ok {
 				break

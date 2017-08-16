@@ -1,14 +1,15 @@
 package redis
 
 import (
-	"testing"
-	"github.com/seewindcn/GoStore/store"
-	"github.com/seewindcn/GoStore"
-	"time"
 	"log"
+	"testing"
+	"time"
+
+	"github.com/seewindcn/GoStore"
+	"github.com/seewindcn/GoStore/store"
 )
 
-func preStore(t *testing.T) *store.Store{
+func preStore(t *testing.T) *store.Store {
 	s := store.New()
 	println("new store", s)
 	if err := s.NewCache("redis"); err != nil {
