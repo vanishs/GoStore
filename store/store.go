@@ -7,7 +7,6 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/garyburd/redigo/redis"
 	. "github.com/vanishs/GoStore"
 	"github.com/vanishs/GoStore/cache"
 	_ "github.com/vanishs/GoStore/cache/redis"
@@ -168,7 +167,7 @@ reGetLock:
 
 lockGet:
 	val, err := self.StCache.GetStField(hash, "", name, reflect.String)
-	if err != nil && err != redis.ErrNil {
+	if err != nil && err != cache.ErrNil {
 		log.Println("[***********]", "redis overload,1s try again", err)
 		// time.Sleep(1 * time.Second)
 		goto lockGet
@@ -201,7 +200,7 @@ reGetLock:
 
 firstGet:
 	val, err := self.StCache.GetStField(hash, "", name, reflect.String)
-	if err == redis.ErrNil {
+	if err == cache.ErrNil {
 		return true
 	}
 

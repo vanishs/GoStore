@@ -1,11 +1,14 @@
 package cache
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 
 	. "github.com/vanishs/GoStore"
 )
+
+var ErrNil = errors.New("cache: nil returned")
 
 type Cache interface {
 	// start cache

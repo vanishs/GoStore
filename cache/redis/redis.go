@@ -281,9 +281,16 @@ func (self *RedisCache) GetStField(table, key, field string, t reflect.Kind) (va
 	//exist, err := redis.Bool(self.do("HEXISTS", fkey, field))
 	val, err = self.do("HGET", fkey, field)
 	if err != nil {
+		if err == redis.ErrNil {
+			err = cache.ErrNil
+		}
 		return nil, err
 	}
-	return _redis2value(t, val)
+	val, err = _redis2value(t, val)
+	if err == redis.ErrNil {
+		err = cache.ErrNil
+	}
+	return val, err
 }
 
 // set struct field
