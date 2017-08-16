@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	. "github.com/seewindcn/GoStore"
+	. "github.com/vanishs/GoStore"
 )
 
 const (

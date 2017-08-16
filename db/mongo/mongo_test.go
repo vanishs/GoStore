@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"testing"
 
-	. "github.com/seewindcn/GoStore"
-	"github.com/seewindcn/GoStore/db"
+	. "github.com/vanishs/GoStore"
+	"github.com/vanishs/GoStore/db"
 )
 
 type Obj1 struct {

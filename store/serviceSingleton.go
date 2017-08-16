@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/seewindcn/GoStore/lock"
+	"github.com/vanishs/GoStore/lock"
 )
 
 type ServiceSingleton struct {

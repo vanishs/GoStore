@@ -3,7 +3,7 @@ package db
 import (
 	"fmt"
 
-	. "github.com/seewindcn/GoStore"
+	. "github.com/vanishs/GoStore"
 )
 
 type LoadOption struct {

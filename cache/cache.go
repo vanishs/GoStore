@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	. "github.com/seewindcn/GoStore"
+	. "github.com/vanishs/GoStore"
 )
 
 type Cache interface {

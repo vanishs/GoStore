@@ -19,8 +19,8 @@ import (
 	"reflect"
 	"testing"
 
-	. "github.com/seewindcn/GoStore"
-	"github.com/seewindcn/GoStore/cache"
+	. "github.com/vanishs/GoStore"
+	"github.com/vanishs/GoStore/cache"
 )
 
 func preRedis(t *testing.T) cache.Cache {

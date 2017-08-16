@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/seewindcn/GoStore"
-	"github.com/seewindcn/GoStore/store"
+	"github.com/vanishs/GoStore"
+	"github.com/vanishs/GoStore/store"
 )
 
 func preStore(t *testing.T) *store.Store {

@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"strings"
 
-	. "github.com/seewindcn/GoStore"
-	"github.com/seewindcn/GoStore/db"
+	. "github.com/vanishs/GoStore"
+	"github.com/vanishs/GoStore/db"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )

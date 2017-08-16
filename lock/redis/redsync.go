@@ -3,9 +3,9 @@ package redis
 import (
 	"time"
 
-	"github.com/seewindcn/GoStore"
-	"github.com/seewindcn/GoStore/cache/redis"
-	"github.com/seewindcn/GoStore/lock"
+	"github.com/vanishs/GoStore"
+	"github.com/vanishs/GoStore/cache/redis"
+	"github.com/vanishs/GoStore/lock"
 	"gopkg.in/redsync.v1"
 )
 

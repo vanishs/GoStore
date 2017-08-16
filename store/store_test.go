@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/seewindcn/GoStore"
-	_ "github.com/seewindcn/GoStore/lock/redis"
+	. "github.com/vanishs/GoStore"
+	_ "github.com/vanishs/GoStore/lock/redis"
 )
 
 type Obj1 struct {

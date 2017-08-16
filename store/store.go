@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/garyburd/redigo/redis"
-	. "github.com/seewindcn/GoStore"
-	"github.com/seewindcn/GoStore/cache"
-	_ "github.com/seewindcn/GoStore/cache/redis"
-	"github.com/seewindcn/GoStore/db"
-	_ "github.com/seewindcn/GoStore/db/mongo"
-	"github.com/seewindcn/GoStore/lock"
+	. "github.com/vanishs/GoStore"
+	"github.com/vanishs/GoStore/cache"
+	_ "github.com/vanishs/GoStore/cache/redis"
+	"github.com/vanishs/GoStore/db"
+	_ "github.com/vanishs/GoStore/db/mongo"
+	"github.com/vanishs/GoStore/lock"
 )
 
 type Store struct {

@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/garyburd/redigo/redis"
-	. "github.com/seewindcn/GoStore"
-	"github.com/seewindcn/GoStore/cache"
+	. "github.com/vanishs/GoStore"
+	"github.com/vanishs/GoStore/cache"
 )
 
 var (
