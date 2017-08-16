@@ -158,34 +158,19 @@ func (self *Store) Loads(query M, objs interface{}, options *db.LoadOption) erro
 }
 
 func (self *Store) CheckAndRegister(hash, name, value string) (string, bool) {
-
-	if "" == value {
-		log.Println("[***********]", "ipAddr is empty")
-		return "", false
-	}
-
-firstGet:
-	val, err := self.StCache.GetStField(hash, "", name, reflect.String)
-	if err != nil && err != redis.ErrNil {
-		log.Println("[***********]", "redis overload,1s try again", err)
-		time.Sleep(1 * time.Second)
-		goto firstGet
-	}
-
-	if val.(string) != "" {
-		return val.(string), false
-	}
-
-	// set value
 	l := self.NewLock("_CAR_" + hash + "-" + name)
-	l.Lock()
+reGetLock:
+	err := l.Lock()
+	if err != nil {
+		goto reGetLock
+	}
 	defer l.Unlock()
 
 lockGet:
-	val, err = self.StCache.GetStField(hash, "", name, reflect.String)
+	val, err := self.StCache.GetStField(hash, "", name, reflect.String)
 	if err != nil && err != redis.ErrNil {
 		log.Println("[***********]", "redis overload,1s try again", err)
-		time.Sleep(1 * time.Second)
+		// time.Sleep(1 * time.Second)
 		goto lockGet
 	}
 
@@ -197,7 +182,7 @@ lockSet:
 	_, err = self.StCache.SetStField(hash, "", name, value, true)
 	if err != nil {
 		log.Println("[***********]", "redis overload,1s try again", err)
-		time.Sleep(1 * time.Second)
+		// time.Sleep(1 * time.Second)
 		goto lockSet
 	}
 
@@ -207,7 +192,11 @@ lockSet:
 
 func (self *Store) UnRegister(hash, name, oldVal string) bool {
 	l := self.NewLock("_CAR_" + hash + "-" + name)
-	l.Lock()
+reGetLock:
+	err := l.Lock()
+	if err != nil {
+		goto reGetLock
+	}
 	defer l.Unlock()
 
 firstGet:
@@ -218,7 +207,7 @@ firstGet:
 
 	if err != nil {
 		log.Println("[***********]", "redis overload,1s try again", err)
-		time.Sleep(1 * time.Second)
+		// time.Sleep(1 * time.Second)
 		goto firstGet
 	}
 
@@ -230,9 +219,30 @@ firstDel:
 	_, err = self.StCache.DelStFields(hash, "", name)
 	if err != nil {
 		log.Println("[***********]", "redis overload,1s try again", err)
-		time.Sleep(1 * time.Second)
+		// time.Sleep(1 * time.Second)
 		goto firstDel
 	}
 
 	return true
+}
+
+func (self *Store) CheckAndUpdate(hash, name, value string) (string, bool) {
+	l := self.NewLock("_CAR_" + hash + "-" + name)
+reGetLock:
+	err := l.Lock()
+	if err != nil {
+		goto reGetLock
+	}
+	defer l.Unlock()
+
+lockSet:
+	_, err = self.StCache.SetStField(hash, "", name, value, true)
+	if err != nil {
+		log.Println("[***********]", "redis overload,1s try again", err)
+		// time.Sleep(1 * time.Second)
+		goto lockSet
+	}
+
+	return value, true
+
 }
