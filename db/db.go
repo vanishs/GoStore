@@ -3,7 +3,7 @@ package db
 import (
 	"fmt"
 
-	. "github.com/vanishs/GoStore"
+	"github.com/vanishs/GoStore"
 )
 
 type LoadOption struct {
@@ -20,22 +20,22 @@ type ChangeOption struct {
 }
 
 type DB interface {
-	Start(infos TableInfos, config M) error
+	Start(infos GoStore.TableInfos, config GoStore.M) error
 	Stop() error
 	// register table
-	RegTable(info *TableInfo) error
+	RegTable(info *GoStore.TableInfo) error
 	// insert or modify to db
 	Save(table string, id, obj interface{}) error
-	SaveByInfo(info *TableInfo, obj interface{}) error
+	SaveByInfo(info *GoStore.TableInfo, obj interface{}) error
 	Load(table, key string, obj interface{}) error
-	LoadByInfo(info *TableInfo, obj interface{}) error
-	Loads(table string, query M, obj interface{}, options *LoadOption) error
+	LoadByInfo(info *GoStore.TableInfo, obj interface{}) error
+	Loads(table string, query GoStore.M, obj interface{}, options *LoadOption) error
 	RandomLoad(table string, obj interface{}) error
 	Delete(table string, id interface{}) error
-	Deletes(table string, query M) (count int, err error)
-	//Update(table, key string, fields M) error
-	FindAndModify(table string, query M, options ChangeOption) (count int, doc interface{}, err error)
-	Count(table string, query M) (int, error)
+	Deletes(table string, query GoStore.M) (count int, err error)
+	//Update(table, key string, fields GoStore.M) error
+	FindAndModify(table string, query GoStore.M, options ChangeOption) (count int, doc interface{}, err error)
+	Count(table string, query GoStore.M) (int, error)
 }
 
 // Instance is a function create a new DB Instance

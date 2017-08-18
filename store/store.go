@@ -7,12 +7,15 @@ import (
 	"reflect"
 	"time"
 
-	. "github.com/vanishs/GoStore"
+	"github.com/vanishs/GoStore"
 	"github.com/vanishs/GoStore/cache"
+	_ "github.com/vanishs/GoStore/cache/goredis"
 	_ "github.com/vanishs/GoStore/cache/redis"
 	"github.com/vanishs/GoStore/db"
 	_ "github.com/vanishs/GoStore/db/mongo"
 	"github.com/vanishs/GoStore/lock"
+	_ "github.com/vanishs/GoStore/lock/goredis"
+	_ "github.com/vanishs/GoStore/lock/redis"
 )
 
 type Store struct {
@@ -22,13 +25,13 @@ type Store struct {
 	SetCache     cache.SetCache
 	ListCache    cache.ListCache
 	Db           db.DB
-	Infos        TableInfos
-	ServiceAgent IServiceAgent
+	Infos        GoStore.TableInfos
+	ServiceAgent GoStore.IServiceAgent
 }
 
 func New() *Store {
 	s := &Store{
-		Infos: make(map[reflect.Type]*TableInfo),
+		Infos: make(map[reflect.Type]*GoStore.TableInfo),
 	}
 	s.ServiceAgent = NewStoreServiceAgent(s)
 	return s
@@ -68,7 +71,7 @@ func (self *Store) NewLockEx(name string, expiry time.Duration, tries int, delay
 	return self.lockMgr.NewLockEx(name, expiry, tries, delay)
 }
 
-func (self *Store) Start(dbCfg M, cacheCfg M) error {
+func (self *Store) Start(dbCfg GoStore.M, cacheCfg GoStore.M) error {
 	if dbCfg != nil {
 		if err := self.Db.Start(self.Infos, dbCfg); err != nil {
 			return err
@@ -84,14 +87,14 @@ func (self *Store) Start(dbCfg M, cacheCfg M) error {
 }
 
 // register table's struct
-func (self *Store) RegTable(table string, st reflect.Type, isCache bool, index *DbIndex) {
+func (self *Store) RegTable(table string, st reflect.Type, isCache bool, index *GoStore.DbIndex) {
 	if st == nil {
 		panic("store: RegTable st is nil")
 	}
 	if _, ok := self.Infos[st]; ok {
 		panic("store: RegTable call twice for table " + table)
 	}
-	info := NewTableInfo()
+	info := GoStore.NewTableInfo()
 	info.Name = table
 	info.IsCache = isCache
 	info.SType = st
@@ -144,7 +147,7 @@ func (self *Store) Load(obj interface{}, cache bool) error {
 }
 
 //Loads objs: Ptr for []TableObject
-func (self *Store) Loads(query M, objs interface{}, options *db.LoadOption) error {
+func (self *Store) Loads(query GoStore.M, objs interface{}, options *db.LoadOption) error {
 	t := reflect.TypeOf(objs)
 	v := t.Elem().Elem()
 	if !(t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Slice && v.Kind() == reflect.Struct) {
@@ -173,7 +176,7 @@ lockGet:
 		goto lockGet
 	}
 
-	if val.(string) != "" {
+	if err == nil && val.(string) != "" {
 		return val.(string), false
 	}
 

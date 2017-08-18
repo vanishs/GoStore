@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/garyburd/redigo/redis"
-	. "github.com/vanishs/GoStore"
+	"github.com/vanishs/GoStore"
 	"github.com/vanishs/GoStore/cache"
 )
 
@@ -57,7 +57,7 @@ func _redisJoin(key string, values []interface{}) []interface{} {
 }
 
 // config
-func (self *RedisCache) config(config M) error {
+func (self *RedisCache) config(config GoStore.M) error {
 	for key, value := range config {
 		if key == "addr" {
 			self.addr = value.(string)
@@ -71,7 +71,7 @@ func (self *RedisCache) config(config M) error {
 }
 
 //Start start cache
-func (self *RedisCache) Start(config M) error {
+func (self *RedisCache) Start(config GoStore.M) error {
 	err := self.config(config)
 	if err != nil {
 		return err
@@ -277,6 +277,7 @@ func (self *RedisCache) GetStruct(table, key string, dest interface{}) (bool, er
 
 // get struct field
 func (self *RedisCache) GetStField(table, key, field string, t reflect.Kind) (val interface{}, err error) {
+
 	fkey := self.fullKey(table, key)
 	//exist, err := redis.Bool(self.do("HEXISTS", fkey, field))
 	val, err = self.do("HGET", fkey, field)
@@ -286,6 +287,7 @@ func (self *RedisCache) GetStField(table, key, field string, t reflect.Kind) (va
 		}
 		return nil, err
 	}
+
 	val, err = _redis2value(t, val)
 	if err == redis.ErrNil {
 		err = cache.ErrNil

@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"reflect"
 
-	. "github.com/vanishs/GoStore"
+	"github.com/vanishs/GoStore"
 )
 
 var ErrNil = errors.New("cache: nil returned")
 
 type Cache interface {
 	// start cache
-	Start(config M) error
+	Start(config GoStore.M) error
 	// get cached value by key.
 	Get(key string) interface{}
 	// GetMulti is a batch version of Get.

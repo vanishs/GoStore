@@ -1,4 +1,4 @@
-package redis
+package goredis
 
 import (
 	"fmt"
@@ -12,11 +12,11 @@ import (
 func preRedis(t *testing.T) cache.Cache {
 	var bm cache.Cache
 	var err error
-	if bm, err = cache.NewCache("redis"); err != nil {
+	if bm, err = cache.NewCache("goredis"); err != nil {
 		t.Error("init err", err)
 		return nil
 	}
-	if err := bm.Start(GoStore.RedisTestConfig); err != nil {
+	if err := bm.Start(GoStore.ClusterRedisTestConfig); err != nil {
 		t.Error("Start err", err)
 	}
 	return bm

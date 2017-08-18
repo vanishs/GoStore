@@ -49,10 +49,13 @@ func (self *RedisDriver) NewLock(name string) lock.Lock {
 	return mx
 }
 func (self *RedisDriver) NewLockEx(name string, expiry time.Duration, tries int, delay time.Duration) lock.Lock {
+	if tries == 0 {
+		tries = 1
+	}
 	mx := self.rs.NewMutex(LOCK_PRE+name,
 		redsync.SetExpiry(GoStore.If(expiry > 0, expiry, self.mgr.Expiry).(time.Duration)),
-		redsync.SetTries(GoStore.If(tries > 0, tries, self.mgr.Tries).(int)),
-		redsync.SetRetryDelay(GoStore.If(delay > 0, delay, self.mgr.Delay).(time.Duration)),
+		redsync.SetTries(tries),
+		redsync.SetRetryDelay(delay),
 	)
 	return mx
 }

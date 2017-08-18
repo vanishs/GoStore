@@ -1,14 +1,21 @@
 package store
 
 import (
-	"log"
+	"fmt"
 	"reflect"
 	"strconv"
 	"testing"
 	"time"
 
-	. "github.com/vanishs/GoStore"
-	_ "github.com/vanishs/GoStore/lock/redis"
+	"github.com/vanishs/GoStore"
+)
+
+const (
+	redisDriver = "goredis"
+)
+
+var (
+	redisConfig = GoStore.ClusterRedisTestConfig
 )
 
 type Obj1 struct {
@@ -29,15 +36,15 @@ func TestStore(t *testing.T) {
 	if err := store.NewDB("mongodb"); err != nil {
 		t.Error("NewDB error:", err)
 	}
-	if err := store.NewCache("redis"); err != nil {
+	if err := store.NewCache(redisDriver); err != nil {
 		t.Error("NewCache error:", err)
 	}
 	store.RegTable("Obj1", reflect.TypeOf((*Obj1)(nil)).Elem(), true,
-		&DbIndex{Key: []string{"name"}, Unique: true},
+		&GoStore.DbIndex{Key: []string{"name"}, Unique: true},
 	)
 	store.RegTable("Obj2", reflect.TypeOf((*Obj2)(nil)).Elem(), true, nil)
 	//store.RegTable("Obj1", reflect.TypeOf((*Obj1)(nil)), true)
-	if err := store.Start(MongodbTestConfig, RedisTestConfig); err != nil {
+	if err := store.Start(GoStore.MongodbTestConfig, redisConfig); err != nil {
 		t.Error("store Start error:", err)
 	}
 
@@ -50,14 +57,14 @@ func TestStore(t *testing.T) {
 	if err := store.Load(o2, true); err != nil {
 		t.Error("store load error:", err)
 	}
-	log.Printf("store laod:%s", o2)
+	fmt.Printf("store laod:%s\n", o2)
 	if o2.Name != o1.Name || o2.Sex != o1.Sex {
-		t.Fatalf("store load error:%s", o2)
+		t.Fatalf("store load error:%s\n", o2)
 	}
 
 	var objs []Obj1
-	store.Loads(M{"sex": 2}, &objs, nil)
-	log.Println("*****", len(objs), objs[0])
+	store.Loads(GoStore.M{"sex": 2}, &objs, nil)
+	fmt.Println("*****", len(objs), objs[0])
 
 	o3 := &Obj1{Id: o1.Id, Name: "cacheName"}
 	if err := store.CacheObj(o3); err != nil {
@@ -65,7 +72,7 @@ func TestStore(t *testing.T) {
 	}
 
 	// lockMgr
-	store.NewLockMgr("redis", 4*time.Second, 0, 0)
+	store.NewLockMgr(redisDriver, 4*time.Second, 0, 0)
 	testIRegistry(store)
 
 	testServiceAgent(store)
@@ -73,20 +80,20 @@ func TestStore(t *testing.T) {
 }
 
 // test IRegistry
-func testIRegistry(reg IRegistry) {
+func testIRegistry(reg GoStore.IRegistry) {
 	addr := "127.0.0.1"
 	rs, my := reg.CheckAndRegister("players", "uid1", addr)
 	if !my && rs != addr {
-		log.Printf("CheckAndRegister other:%s\n", rs)
+		fmt.Printf("CheckAndRegister other:%s\n", rs)
 	}
 	reg.CheckAndRegister("players", "uid2", addr+"2")
 	reg.CheckAndRegister("players", "uid3", addr+"3")
 	if rs, ok := reg.CheckAndRegister("players", "uid4", ""); true {
-		log.Println("CheckAndRegister only check", ok, rs)
+		fmt.Println("CheckAndRegister only check", ok, rs)
 	}
 	ok := reg.UnRegister("players", "uid1", addr)
 	if !ok {
-		log.Println("CheckAndRegister unregister error")
+		fmt.Println("CheckAndRegister unregister error")
 	}
 }
 
@@ -96,7 +103,7 @@ func testServiceAgent(store *Store) {
 	addr := "127.0.0.1:8001"
 	c1 := 0
 	for i := 0; i < 5; i++ {
-		svc := &Service{
+		svc := &GoStore.Service{
 			Name:    name + strconv.Itoa(i),
 			Service: service,
 			InAddr:  addr,
@@ -110,7 +117,7 @@ func testServiceAgent(store *Store) {
 	}
 	for i := 0; i < 10; i++ {
 		svc := store.ServiceAgent.Dns(service)
-		log.Println("~~~", svc)
+		fmt.Println("~~~", svc)
 	}
 	store.ServiceAgent.UnRegister(name)
 }
@@ -122,19 +129,19 @@ func testServiceSingleton(store *Store) {
 		svcFunc := func(looped *bool) {
 			for i := 0; i < 2; i++ {
 				if *looped {
-					log.Printf("[%s]%s.", my, i)
+					fmt.Printf("[%s]%s.\n", my, i)
 				} else {
-					log.Printf("[%s]CheckSingleton error", my)
+					fmt.Printf("[%s]CheckSingleton error\n", my)
 					break
 				}
 				time.Sleep(time.Second * time.Duration(1))
 			}
-			log.Printf("[%s]end", my)
+			fmt.Printf("[%s]end\n", my)
 		}
 		ss := NewServiceSingleton(store, name, 4*time.Second, svcFunc)
 		for {
 			if ss.Start() {
-				//log.Printf("[%s]stop", my)
+				//fmt.Printf("[%s]stop\n", my)
 				break
 			}
 			time.Sleep(time.Second / 4)

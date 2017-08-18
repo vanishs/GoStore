@@ -1,7 +1,7 @@
 package redis
 
 import (
-	"log"
+	"fmt"
 	"testing"
 	"time"
 
@@ -23,17 +23,43 @@ func preStore(t *testing.T) *store.Store {
 }
 
 func TestRedisLock(t *testing.T) {
-	expiry := time.Duration(5)
+	expiry := 5 * time.Second
 
 	s := preStore(t)
 	lock := s.NewLockEx("lock_test", expiry, 0, 0)
-	lock.Lock()
-	defer lock.Unlock()
-	for i := 0; i < 3; i++ {
-		time.Sleep(expiry * time.Second)
-		if !lock.Extend() {
-			t.Error("lock Extend error")
-		}
-		log.Printf("*****:%s\n", i)
+	err := lock.Lock()
+	if err != nil {
+		t.Error("lock error")
 	}
+	defer lock.Unlock()
+
+	lock2 := s.NewLockEx("lock_test", expiry, 0, 0)
+	err2 := lock2.Lock()
+	if err2 == nil {
+		t.Error("lock2 wth")
+	}
+	fmt.Println("should be:", err2)
+
+	time.Sleep(6 * time.Second)
+
+	err2 = lock2.Lock()
+	if err2 != nil {
+		t.Error("lock error")
+	}
+
+	defer lock2.Unlock()
+
+	time.Sleep(3 * time.Second)
+	v := lock2.Extend()
+	if !v {
+		t.Error("Extend error")
+	}
+
+	time.Sleep(3 * time.Second)
+	err = lock.Lock()
+	if err == nil {
+		t.Error("lock wth")
+	}
+	fmt.Println("should be:", err)
+
 }

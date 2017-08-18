@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	. "github.com/vanishs/GoStore"
+	"github.com/vanishs/GoStore"
 	"github.com/vanishs/GoStore/db"
 )
 
@@ -23,7 +23,7 @@ type Obj2 struct {
 
 func preMongoDB(t *testing.T) db.DB {
 	m := NewMongoDB()
-	err := m.Start(nil, MongodbTestConfig)
+	err := m.Start(nil, GoStore.MongodbTestConfig)
 	if err != nil {
 		t.Error("MongoDB new error:", err)
 		return nil
@@ -74,7 +74,7 @@ func TestMongoDB_Delete(t *testing.T) {
 	m := preMongoDB(t)
 	defer m.Stop()
 	m.Delete("test1", 1)
-	c, err := m.Deletes("test1", M{"name": "idtest2"})
+	c, err := m.Deletes("test1", GoStore.M{"name": "idtest2"})
 	if err != nil {
 		t.Error("Deletes error", err)
 	}

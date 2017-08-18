@@ -16,6 +16,13 @@ var (
 	RedisTestConfig = M{
 		"addr": "127.0.0.1:6379",
 	}
+	ClusterRedisTestConfig = M{
+		"addr": "192.168.1.174:9001;192.168.1.174:9002;192.168.1.174:9003",
+	}
+	ClusterRedisTestConfig2 = M{
+		"addr":       "192.168.1.174:16379",
+		"mastername": "mymaster",
+	}
 )
 
 type M map[string]interface{}

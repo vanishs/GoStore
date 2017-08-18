@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	. "github.com/vanishs/GoStore"
+	"github.com/vanishs/GoStore"
 )
 
 const (
@@ -17,9 +17,9 @@ const (
 
 type StoreServiceAgent struct {
 	sync.Mutex
-	names         map[string]*Service //{serviceName:Service}
-	all           map[string]*Service //{key:Service}
-	addrs         map[string]string   //{inAddr:outAddr}
+	names         map[string]*GoStore.Service //{serviceName:Service}
+	all           map[string]*GoStore.Service //{key:Service}
+	addrs         map[string]string           //{inAddr:outAddr}
 	store         *Store
 	allUpdateTime int64
 }
@@ -27,8 +27,8 @@ type StoreServiceAgent struct {
 func NewStoreServiceAgent(store *Store) *StoreServiceAgent {
 	sss := &StoreServiceAgent{
 		store:         store,
-		all:           make(map[string]*Service),
-		names:         make(map[string]*Service),
+		all:           make(map[string]*GoStore.Service),
+		names:         make(map[string]*GoStore.Service),
 		allUpdateTime: 0,
 	}
 	return sss
@@ -38,7 +38,7 @@ func (self *StoreServiceAgent) Start() {
 	go self._loop()
 }
 
-func (self *StoreServiceAgent) Register(svc *Service) {
+func (self *StoreServiceAgent) Register(svc *GoStore.Service) {
 	log.Println("[!]StoreServiceAgent.Register:", svc.Name, svc.Service)
 	svc.LoadCount = 0
 	self.Lock()
@@ -47,7 +47,7 @@ func (self *StoreServiceAgent) Register(svc *Service) {
 	self._update(svc)
 }
 
-func (self *StoreServiceAgent) _delete(svc *Service) {
+func (self *StoreServiceAgent) _delete(svc *GoStore.Service) {
 	self.store.StCache.DelStFields(ServiceTable, "", svc.GetKey())
 }
 
@@ -64,19 +64,19 @@ func (self *StoreServiceAgent) UnRegister(service string) {
 	self._delete(svc)
 }
 
-func (self *StoreServiceAgent) Dns(service string) *Service {
+func (self *StoreServiceAgent) Dns(service string) *GoStore.Service {
 	self.refresh()
 	svc := self._dnsService(service)
 	return svc
 }
 
-func (self *StoreServiceAgent) DnsByName(service, name string) *Service {
+func (self *StoreServiceAgent) DnsByName(service, name string) *GoStore.Service {
 	self.refresh()
-	svc, ok := self.all[GetServiceKey(service, name)]
-	return If(ok, svc, nil).(*Service)
+	svc, ok := self.all[GoStore.GetServiceKey(service, name)]
+	return GoStore.If(ok, svc, nil).(*GoStore.Service)
 }
 
-func (self *StoreServiceAgent) DnsAll(service string) []*Service {
+func (self *StoreServiceAgent) DnsAll(service string) []*GoStore.Service {
 	self.refresh()
 	svcs := self._dnsServices(service)
 	return svcs
@@ -103,7 +103,7 @@ func (self *StoreServiceAgent) refresh() {
 	//}
 	//self.addrs = make(map[string]string)
 
-	all := make(map[string]*Service)
+	all := make(map[string]*GoStore.Service)
 	addrs := make(map[string]string)
 	fields, err := self.store.StCache.GetStAllFields(ServiceTable, "")
 	if err != nil {
@@ -112,7 +112,7 @@ func (self *StoreServiceAgent) refresh() {
 		return
 	}
 	for _, v := range fields {
-		var svc Service
+		var svc GoStore.Service
 		err = json.Unmarshal(v, &svc)
 		if err == nil && &svc != nil {
 			//log.Println("~~~", k, &svc)
@@ -120,7 +120,7 @@ func (self *StoreServiceAgent) refresh() {
 				all[svc.GetKey()] = &svc
 				addrs[svc.InAddr] = svc.OutAddr
 			} else {
-				go func(svc *Service) {
+				go func(svc *GoStore.Service) {
 					self._delete(svc)
 				}(&svc)
 			}
@@ -133,8 +133,8 @@ func (self *StoreServiceAgent) refresh() {
 	log.Println("StoreServiceAgent.refresh", len(self.all), len(fields))
 }
 
-func (self *StoreServiceAgent) _dnsServices(svcName string) []*Service {
-	svcs := []*Service{}
+func (self *StoreServiceAgent) _dnsServices(svcName string) []*GoStore.Service {
+	svcs := []*GoStore.Service{}
 	for _, svc := range self.all {
 		//log.Println("_dnsServices", svc.Service, svcName)
 		if svc.Service == svcName {
@@ -144,7 +144,7 @@ func (self *StoreServiceAgent) _dnsServices(svcName string) []*Service {
 	return svcs
 }
 
-func (self *StoreServiceAgent) _dnsService(svcName string) *Service {
+func (self *StoreServiceAgent) _dnsService(svcName string) *GoStore.Service {
 	svcs := self._dnsServices(svcName)
 	rand.Seed(time.Now().UnixNano())
 	if len(svcs) > 0 {
@@ -153,10 +153,10 @@ func (self *StoreServiceAgent) _dnsService(svcName string) *Service {
 	return nil
 }
 
-func (self *StoreServiceAgent) _update(svc *Service) {
+func (self *StoreServiceAgent) _update(svc *GoStore.Service) {
 	defer func() {
 		if r := recover(); r != nil {
-			PrintRecover(r)
+			GoStore.PrintRecover(r)
 			log.Printf("[StoreServiceAgent]_update error:%s", r)
 		}
 	}()
@@ -178,7 +178,7 @@ func (self *StoreServiceAgent) _loop() {
 		if len(self.names) > 0 {
 			//log.Println("[StoreServiceAgent]update services", len(self.names))
 			self.Lock()
-			svcs := make([]*Service, 0, len(self.names))
+			svcs := make([]*GoStore.Service, 0, len(self.names))
 			for _, v := range self.names {
 				svcs = append(svcs, v)
 			}

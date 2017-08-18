@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	. "github.com/vanishs/GoStore"
+	"github.com/vanishs/GoStore"
 	"github.com/vanishs/GoStore/db"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -22,7 +22,7 @@ var (
 type MongoDB struct {
 	url   string // like: mongodb://user:pass@127.0.0.1:27017,127.0.0.2:27017/dbname?maxPoolSize=100&connect=direct
 	s     *mgo.Session
-	Infos TableInfos
+	Infos GoStore.TableInfos
 }
 
 func NewMongoDB() db.DB {
@@ -31,10 +31,10 @@ func NewMongoDB() db.DB {
 
 // auto_inc table
 func autoInc(db *mgo.Database, table string) int {
-	result := M{}
+	result := GoStore.M{}
 	c := db.C(AUTO_INC_TABLE)
-	if _, err := c.Find(M{AUTO_INC_NAME: table}).Apply(mgo.Change{
-		Update:    bson.M{"$set": M{AUTO_INC_NAME: table}, "$inc": M{AUTO_INC_ID: 1}},
+	if _, err := c.Find(GoStore.M{AUTO_INC_NAME: table}).Apply(mgo.Change{
+		Update:    bson.M{"$set": GoStore.M{AUTO_INC_NAME: table}, "$inc": GoStore.M{AUTO_INC_ID: 1}},
 		Upsert:    true,
 		ReturnNew: true,
 	}, &result); err != nil {
@@ -53,7 +53,7 @@ func isInt(k reflect.Kind) bool {
 }
 
 // config
-func (self *MongoDB) config(config M) error {
+func (self *MongoDB) config(config GoStore.M) error {
 	for key, value := range config {
 		if key == "url" {
 			self.url = value.(string)
@@ -65,7 +65,7 @@ func (self *MongoDB) config(config M) error {
 // register table's struct
 //func (self *MongoDB) RegTable(table string, st reflect.Type, isCache bool)
 
-func (self *MongoDB) Start(infos TableInfos, config M) error {
+func (self *MongoDB) Start(infos GoStore.TableInfos, config GoStore.M) error {
 	err := self.config(config)
 	if err != nil {
 		return err
@@ -104,7 +104,7 @@ func (self *MongoDB) Stop() error {
 	return nil
 }
 
-func (self *MongoDB) RegTable(info *TableInfo) error {
+func (self *MongoDB) RegTable(info *GoStore.TableInfo) error {
 	st := info.SType
 	c := st.NumField()
 	for i := 0; i < c; i++ {
@@ -120,7 +120,7 @@ func (self *MongoDB) RegTable(info *TableInfo) error {
 	return nil
 }
 
-func (self *MongoDB) _initAutoInc(db *mgo.Database, info *TableInfo, v reflect.Value) {
+func (self *MongoDB) _initAutoInc(db *mgo.Database, info *GoStore.TableInfo, v reflect.Value) {
 	if info == nil {
 		return
 	}
@@ -144,10 +144,10 @@ func (self *MongoDB) Save(table string, id, obj interface{}) error {
 	return self._save(_db, table, id, obj)
 }
 
-func (self *MongoDB) SaveByInfo(info *TableInfo, obj interface{}) error {
+func (self *MongoDB) SaveByInfo(info *GoStore.TableInfo, obj interface{}) error {
 	s, _db := self._getSessionAndDb()
 	defer s.Close()
-	v := GetValue(obj)
+	v := GoStore.GetValue(obj)
 	self._initAutoInc(_db, info, v)
 	return self._save(_db, info.Name, info.GetKey(obj), obj)
 }
@@ -166,17 +166,17 @@ func (self *MongoDB) _save(db *mgo.Database, table string, id, obj interface{}) 
 func (self *MongoDB) Load(table, key string, obj interface{}) error {
 	s, _db := self._getSessionAndDb()
 	defer s.Close()
-	kv := GetValue(obj).FieldByName(key).Interface()
+	kv := GoStore.GetValue(obj).FieldByName(key).Interface()
 	return self._load(_db, table, kv, obj)
 }
 
-func (self *MongoDB) LoadByInfo(info *TableInfo, obj interface{}) error {
+func (self *MongoDB) LoadByInfo(info *GoStore.TableInfo, obj interface{}) error {
 	s, _db := self._getSessionAndDb()
 	defer s.Close()
 	return self._load(_db, info.Name, info.GetKey(obj), obj)
 }
 
-func (self *MongoDB) Loads(table string, query M, obj interface{}, options *db.LoadOption) error {
+func (self *MongoDB) Loads(table string, query GoStore.M, obj interface{}, options *db.LoadOption) error {
 	s, _db := self._getSessionAndDb()
 	defer s.Close()
 	q := _db.C(table).Find(query)
@@ -197,12 +197,12 @@ func (self *MongoDB) Loads(table string, query M, obj interface{}, options *db.L
 func (self *MongoDB) RandomLoad(table string, obj interface{}) error {
 	s, _db := self._getSessionAndDb()
 	defer s.Close()
-	pipe := _db.C(table).Pipe([]M{{"$sample": M{"size": 1}}})
+	pipe := _db.C(table).Pipe([]GoStore.M{{"$sample": GoStore.M{"size": 1}}})
 	return pipe.One(obj)
 }
 
 func (self *MongoDB) _load(db *mgo.Database, table string, key, obj interface{}) error {
-	return db.C(table).Find(M{ID_FIELD: key}).One(obj)
+	return db.C(table).Find(GoStore.M{ID_FIELD: key}).One(obj)
 }
 
 func (self *MongoDB) Delete(table string, id interface{}) error {
@@ -211,7 +211,7 @@ func (self *MongoDB) Delete(table string, id interface{}) error {
 	return _db.C(table).RemoveId(id)
 }
 
-func (self *MongoDB) Deletes(table string, query M) (count int, err error) {
+func (self *MongoDB) Deletes(table string, query GoStore.M) (count int, err error) {
 	s, _db := self._getSessionAndDb()
 	defer s.Close()
 	if info, err := _db.C(table).RemoveAll(query); err != nil {
@@ -221,10 +221,10 @@ func (self *MongoDB) Deletes(table string, query M) (count int, err error) {
 	}
 }
 
-func (self *MongoDB) FindAndModify(table string, query M, options db.ChangeOption) (count int, doc interface{}, err error) {
+func (self *MongoDB) FindAndModify(table string, query GoStore.M, options db.ChangeOption) (count int, doc interface{}, err error) {
 	s, _db := self._getSessionAndDb()
 	defer s.Close()
-	result := M{}
+	result := GoStore.M{}
 	change := mgo.Change{Update: options.Update,
 		Remove:    options.Remove,
 		Upsert:    options.Upsert,
@@ -237,7 +237,7 @@ func (self *MongoDB) FindAndModify(table string, query M, options db.ChangeOptio
 	}
 }
 
-func (self *MongoDB) Count(table string, query M) (int, error) {
+func (self *MongoDB) Count(table string, query GoStore.M) (int, error) {
 	s, _db := self._getSessionAndDb()
 	defer s.Close()
 	if n, err := _db.C(table).Find(query).Count(); err != nil {
