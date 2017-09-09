@@ -104,13 +104,13 @@ func (self *Store) RegTable(table string, st reflect.Type, isCache bool, index *
 }
 
 // CacheObj cache obj's some fields
-func (self *Store) CacheObj(obj interface{}) error {
-	info := self.Infos.GetTableInfo(obj)
-	if info == nil {
-		panic(fmt.Sprintf("store save: info no found for obj:%s", obj))
-	}
-	return self.StCache.PutStruct(info.Name, info.GetStrKey(obj), obj, 0)
-}
+// func (self *Store) CacheObj(obj interface{}) error {
+// 	info := self.Infos.GetTableInfo(obj)
+// 	if info == nil {
+// 		panic(fmt.Sprintf("store save: info no found for obj:%s", obj))
+// 	}
+// 	return self.StCache.PutStruct(info.Name, info.GetStrKey(obj), obj, 0)
+// }
 
 func (self *Store) Save(obj interface{}) error {
 	info := self.Infos.GetTableInfo(obj)
@@ -120,9 +120,9 @@ func (self *Store) Save(obj interface{}) error {
 	if err := self.Db.SaveByInfo(info, obj); err != nil {
 		return err
 	}
-	if info.IsCache {
-		self.StCache.PutStruct(info.Name, info.GetStrKey(obj), obj, 0)
-	}
+	// if info.IsCache {
+	// 	self.StCache.PutStruct(info.Name, info.GetStrKey(obj), obj, 0)
+	// }
 	return nil
 }
 
@@ -135,14 +135,14 @@ func (self *Store) Load(obj interface{}, cache bool) error {
 	if reflect.TypeOf(obj).Kind() != reflect.Ptr {
 		panic("store load obj much be struct's pointer")
 	}
-	if cache && info.IsCache && self.StCache != nil {
-		key := info.GetStrKey(obj)
-		exist, err := self.StCache.GetStruct(info.Name, key, obj)
-		// log.Println("[store] load from cache", key, exist, err)
-		if err == nil && exist {
-			return nil
-		}
-	}
+	// if cache && info.IsCache && self.StCache != nil {
+	// 	key := info.GetStrKey(obj)
+	// 	exist, err := self.StCache.GetStruct(info.Name, key, obj)
+	// 	// log.Println("[store] load from cache", key, exist, err)
+	// 	if err == nil && exist {
+	// 		return nil
+	// 	}
+	// }
 	return self.Db.LoadByInfo(info, obj)
 }
 
