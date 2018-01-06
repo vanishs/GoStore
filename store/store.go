@@ -155,8 +155,7 @@ func (self *Store) Loads(query GoStore.M, objs interface{}, options *db.LoadOpti
 	}
 
 	info := self.Infos.GetTableInfo(v)
-	self.Db.Loads(info.Name, query, objs, options)
-	return nil
+	return self.Db.Loads(info.Name, query, objs, options)
 }
 
 func (self *Store) CheckAndRegister(hash, name, value string) (string, bool) {
