@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/globalsign/mgo"
 	"github.com/vanishs/GoStore"
 	"github.com/vanishs/GoStore/db"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
