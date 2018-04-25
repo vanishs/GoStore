@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/globalsign/mgo"
 	"github.com/vanishs/GoStore"
 	"github.com/vanishs/GoStore/db"
-	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -23,6 +23,7 @@ type MongoDB struct {
 	url   string // like: mongodb://user:pass@127.0.0.1:27017,127.0.0.2:27017/dbname?maxPoolSize=100&connect=direct
 	s     *mgo.Session
 	Infos GoStore.TableInfos
+	db    string
 }
 
 func NewMongoDB() db.DB {
@@ -58,6 +59,10 @@ func (self *MongoDB) config(config GoStore.M) error {
 		if key == "url" {
 			self.url = value.(string)
 		}
+		if key == "db" {
+			self.db = value.(string)
+		}
+
 	}
 	return nil
 }
@@ -133,7 +138,7 @@ func (self *MongoDB) _initAutoInc(db *mgo.Database, info *GoStore.TableInfo, v r
 
 func (self *MongoDB) _getSessionAndDb() (*mgo.Session, *mgo.Database) {
 	s := self.s.Copy()
-	_db := s.DB("")
+	_db := s.DB(self.db)
 	return s, _db
 }
 
