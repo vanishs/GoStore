@@ -22,7 +22,7 @@ const (
 type RedisDriver struct {
 	mgr *lock.LockMgr
 	cc  redis.UniversalClient
-	opt golock.LockOptions
+	opt golock.Options
 }
 
 // New New
@@ -40,15 +40,15 @@ func New(mgr *lock.LockMgr, st interface{}) lock.Driver {
 
 // Init Init
 func (self *RedisDriver) Init() {
-	self.opt = golock.LockOptions{
+	self.opt = golock.Options{
 		LockTimeout: self.mgr.Expiry,
-		WaitRetry:   self.mgr.Delay,
-		WaitTimeout: self.mgr.Delay * time.Duration(self.mgr.Tries),
+		RetryDelay:  self.mgr.Delay,
+		RetryCount:  self.mgr.Tries,
 	}
 }
 
 type myLock struct {
-	L *golock.Lock
+	L *golock.Locker
 }
 
 func (gl *myLock) Lock() error {
@@ -83,7 +83,7 @@ func (gl *myLock) Extend() bool {
 
 // NewLock NewLock
 func (self *RedisDriver) NewLock(name string) lock.Lock {
-	mx := golock.NewLock(self.cc, LOCK_PRE+name, &self.opt)
+	mx := golock.New(self.cc, LOCK_PRE+name, &self.opt)
 	rv := &myLock{
 		L: mx,
 	}
@@ -92,12 +92,12 @@ func (self *RedisDriver) NewLock(name string) lock.Lock {
 
 // NewLockEx NewLockEx
 func (self *RedisDriver) NewLockEx(name string, expiry time.Duration, tries int, delay time.Duration) lock.Lock {
-	optex := golock.LockOptions{
+	optex := golock.Options{
 		LockTimeout: expiry,
-		WaitRetry:   delay,
-		WaitTimeout: delay * time.Duration(tries),
+		RetryDelay:  delay,
+		RetryCount:  tries,
 	}
-	mx := golock.NewLock(self.cc, LOCK_PRE+name, &optex)
+	mx := golock.New(self.cc, LOCK_PRE+name, &optex)
 	rv := &myLock{
 		L: mx,
 	}
